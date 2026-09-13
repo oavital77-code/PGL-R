@@ -129,6 +129,10 @@ export const securitySchema = z.object({
 export const permissionsSchema = z.object({
   manager: z.record(z.string(), z.boolean()).default({}),
   employee: z.record(z.string(), z.boolean()).default({}),
+  /** scope of hours.report_for_others / hours.view_others (spec §3.2) */
+  others_scope: z
+    .object({ manager: z.enum(["department", "all"]).default("all"), employee: z.enum(["department", "all"]).default("department") })
+    .default({ manager: "all", employee: "department" }),
 });
 
 export const notificationsSchema = z.object({

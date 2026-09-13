@@ -1,0 +1,77 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Brand: deep blue-violet from the PGL logo, secondary light-blue (spec §16.6) */
+  --color-brand-50: #eef0fb;
+  --color-brand-100: #d9ddf5;
+  --color-brand-200: #b3bbeb;
+  --color-brand-300: #8a97df;
+  --color-brand-400: #6474d0;
+  --color-brand-500: #4453bd;
+  --color-brand-600: #34409c;
+  --color-brand-700: #2a3380;
+  --color-brand-800: #1f2660;
+  --color-brand-900: #161b45;
+  --color-brand: #2a3380;
+  --color-accent-blue: #38bdf8;
+
+  --color-background: #f8f9fc;
+  --color-foreground: #111827;
+  --color-card: #ffffff;
+  --color-card-foreground: #111827;
+  --color-muted: #f1f3f9;
+  --color-muted-foreground: #6b7280;
+  --color-border: #e3e6ef;
+  --color-input: #d7dbe7;
+  --color-ring: #4453bd;
+  --color-primary: #2a3380;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #e6f6fe;
+  --color-secondary-foreground: #075985;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+
+  --font-sans: "Assistant", "Heebo", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --radius: 0.5rem;
+}
+
+@font-face {
+  font-family: "Assistant";
+  src: url("/fonts/Assistant-Hebrew.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+@font-face {
+  font-family: "Assistant";
+  src: url("/fonts/Assistant-Latin.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+html {
+  font-family: var(--font-sans);
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+}
+
+/* Numbers are always LTR inside cells (spec §16.1) */
+.num {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

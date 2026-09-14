@@ -122,7 +122,8 @@ export const filesSchema = z.object({
 });
 
 export const securitySchema = z.object({
-  mfa_required_roles: z.array(z.enum(["admin", "manager", "employee"])).default(["admin"]),
+  /** Empty by default: TOTP is a paid Clerk feature and PGL chose not to enforce MFA (see DEVIATIONS). */
+  mfa_required_roles: z.array(z.enum(["admin", "manager", "employee"])).default([]),
   session_hours: z.number().default(12),
 });
 

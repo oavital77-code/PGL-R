@@ -18,7 +18,14 @@ const loadRaw = unstable_cache(
 
 /** Read a setting with defaults applied. Cached ≤ 60s (spec §3.3). */
 export async function getSetting<K extends SettingsKey>(key: K): Promise<SettingsValue<K>> {
-  const raw = await loadRaw(key);
+  let raw: unknown;
+  try {
+    raw = await loadRaw(key);
+  } catch {
+    // outside a Next.js request scope (cron scripts, tests): read directly
+    const rows = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, key)).limit(1);
+    raw = rows[0]?.value ?? null;
+  }
   return parseSetting(key, raw);
 }
 
@@ -34,7 +41,7 @@ export async function setSetting<K extends SettingsKey>(key: K, value: SettingsV
     .insert(settings)
     .values({ key, value: parsed, updatedBy })
     .onConflictDoUpdate({ target: settings.key, set: { value: parsed, updatedBy, updatedAt: new Date() } });
-  revalidateTag(TAG);
+  invalidateSettings();
   return parsed;
 }
 
@@ -43,6 +50,11 @@ export async function patchSetting<K extends SettingsKey>(key: K, patch: Partial
   return setSetting(key, { ...current, ...patch }, updatedBy);
 }
 
+/** Safe outside a Next request context (cron/tests). */
 export function invalidateSettings() {
-  revalidateTag(TAG);
+  try {
+    revalidateTag(TAG);
+  } catch {
+    /* not in a Next.js request scope */
+  }
 }

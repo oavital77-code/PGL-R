@@ -6,9 +6,9 @@ import { db, type Tx } from "@/lib/db";
 import { documents } from "@/lib/db/schema";
 import { BusinessRuleError, ValidationError } from "@/lib/auth/errors";
 import { getSetting } from "@/lib/settings/service";
+import { BUCKETS, type Bucket } from "./buckets";
 
-export type Bucket = "contracts" | "invoices" | "supplier-invoices" | "general-docs" | "signatures" | "company" | "imports" | "report-exports";
-export const BUCKETS: Bucket[] = ["contracts", "invoices", "supplier-invoices", "general-docs", "signatures", "company", "imports", "report-exports"];
+export { BUCKETS, type Bucket } from "./buckets";
 
 export type DocumentEntity = (typeof documents.$inferInsert)["entityType"];
 

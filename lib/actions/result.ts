@@ -30,7 +30,8 @@ export async function runAction<T>(fn: () => Promise<T>): Promise<ActionResult<T
     if (e instanceof AuthError) return fail(`errors.${e.code.toLowerCase()}`, e.code);
     if (e instanceof NotFoundError) return fail("errors.not_found", "NOT_FOUND");
     if (e instanceof BusinessRuleError) return fail(e.message, e.code);
-    console.error(e);
+    const { reportError } = await import("@/lib/observability/sentry");
+    await reportError(e, { scope: "server-action" });
     return fail("errors.unexpected", "UNEXPECTED");
   }
 }

@@ -16,7 +16,8 @@ export async function runCron(req: Request, name: string, job: () => Promise<unk
     console.log(`[cron:${name}] ok in ${Date.now() - started}ms`, result);
     return Response.json({ ok: true, job: name, ms: Date.now() - started, result });
   } catch (e) {
-    console.error(`[cron:${name}] failed`, e);
+    const { reportError } = await import("@/lib/observability/sentry");
+    await reportError(e, { scope: "cron", job: name });
     return Response.json({ ok: false, job: name, error: e instanceof Error ? e.message : String(e) }, { status: 500 });
   }
 }

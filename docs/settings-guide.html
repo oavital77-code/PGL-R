@@ -1,0 +1,568 @@
+<title>מדריך ההגדרות של PGL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&display=swap">
+<style>
+  :root {
+    --ground: #EBEFF5;
+    --surface: #FFFFFF;
+    --surface-2: #F5F8FC;
+    --ink: #14223C;
+    --ink-2: #44556E;
+    --muted: #78879D;
+    --rule: #D6DEEA;
+    --rule-soft: #E6ECF4;
+    --accent: #1B5FA6;
+    --accent-soft: #E2EDF8;
+    --warn: #8A5200;
+    --warn-soft: #FAEEDA;
+    --warn-rule: #E8CFA1;
+    --shadow: 0 1px 2px rgba(20, 34, 60, .06), 0 8px 24px rgba(20, 34, 60, .05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0D1421;
+      --surface: #151E2E;
+      --surface-2: #1A2434;
+      --ink: #E7EDF6;
+      --ink-2: #AEBBCD;
+      --muted: #7F8EA4;
+      --rule: #273349;
+      --rule-soft: #1E2839;
+      --accent: #7BB0E0;
+      --accent-soft: #17293D;
+      --warn: #E3B26A;
+      --warn-soft: #2A2217;
+      --warn-rule: #4A3A20;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0D1421;
+    --surface: #151E2E;
+    --surface-2: #1A2434;
+    --ink: #E7EDF6;
+    --ink-2: #AEBBCD;
+    --muted: #7F8EA4;
+    --rule: #273349;
+    --rule-soft: #1E2839;
+    --accent: #7BB0E0;
+    --accent-soft: #17293D;
+    --warn: #E3B26A;
+    --warn-soft: #2A2217;
+    --warn-rule: #4A3A20;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .3);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { direction: rtl; }
+
+  body {
+    margin: 0;
+    padding-inline: 20px;
+    padding-block: 0 72px;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Assistant", "Segoe UI", system-ui, sans-serif;
+    font-size: 16.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1120px; margin-inline: auto; }
+
+  /* ---------- masthead ---------- */
+  .masthead {
+    padding-block: 56px 36px;
+    border-bottom: 2px solid var(--ink);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 24px 40px;
+  }
+  .masthead h1 {
+    font-family: "Frank Ruhl Libre", Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 1.3rem + 2.6vw, 3.1rem);
+    line-height: 1.12;
+    letter-spacing: -.01em;
+    margin: 0 0 10px;
+    text-wrap: balance;
+  }
+  .masthead p { margin: 0; color: var(--ink-2); max-width: 46ch; }
+  .masthead .lead-col { flex: 1 1 380px; }
+  .tally { display: flex; gap: 28px; flex-wrap: wrap; }
+  .tally div { min-width: 64px; }
+  .tally b {
+    display: block;
+    font-family: "Frank Ruhl Libre", Georgia, serif;
+    font-size: 2.1rem;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .tally span {
+    display: block;
+    margin-top: 6px;
+    font-size: .74rem;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ---------- intro ---------- */
+  .intro {
+    margin-block: 32px;
+    padding: 24px 26px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    box-shadow: var(--shadow);
+  }
+  .intro h2 {
+    font-family: "Frank Ruhl Libre", Georgia, serif;
+    font-size: 1.3rem;
+    margin: 0 0 12px;
+  }
+  .intro ol { margin: 0; padding-inline-start: 22px; display: grid; gap: 8px; }
+  .intro code, code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: .88em;
+    background: var(--surface-2);
+    border: 1px solid var(--rule-soft);
+    border-radius: 2px;
+    padding: 1px 5px;
+    direction: ltr;
+    display: inline-block;
+    unicode-bidi: embed;
+  }
+
+  /* ---------- layout ---------- */
+  .cols {
+    display: grid;
+    grid-template-columns: 232px 1fr;
+    gap: 44px;
+    align-items: start;
+    margin-top: 40px;
+  }
+  nav.index { position: sticky; top: 24px; }
+  nav.index h2 {
+    font-size: .74rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 12px;
+    font-weight: 700;
+    font-family: "Assistant", sans-serif;
+  }
+  nav.index ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+  nav.index a {
+    display: grid;
+    grid-template-columns: 22px 1fr auto;
+    gap: 8px;
+    align-items: baseline;
+    padding: 5px 8px;
+    color: var(--ink-2);
+    text-decoration: none;
+    border-radius: 2px;
+    font-size: .93rem;
+  }
+  nav.index a:hover, nav.index a:focus-visible { background: var(--accent-soft); color: var(--ink); }
+  nav.index .n { color: var(--muted); font-variant-numeric: tabular-nums; font-size: .82rem; }
+  nav.index .opt { color: var(--muted); font-size: .7rem; }
+
+  /* ---------- steps ---------- */
+  .steps { display: grid; gap: 14px; min-width: 0; }
+
+  section.step {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 26px 28px 24px;
+    scroll-margin-top: 20px;
+  }
+  section.step.optional { background: var(--surface-2); border-style: dashed; }
+
+  .head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .head .num {
+    font-family: "Frank Ruhl Libre", Georgia, serif;
+    font-size: 1.5rem;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    min-width: 1.4em;
+  }
+  .head h3 {
+    font-family: "Frank Ruhl Libre", Georgia, serif;
+    font-size: 1.42rem;
+    margin: 0;
+    flex: 1 1 auto;
+    text-wrap: balance;
+  }
+  .badge {
+    font-size: .7rem;
+    letter-spacing: .08em;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+    font-weight: 700;
+  }
+  .badge-req { background: var(--accent); color: var(--surface); }
+  :root[data-theme="dark"] .badge-req, :root:not([data-theme="light"]) .badge-req { color: #0D1421; }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .badge-req { color: #FFFFFF; } }
+  .badge-opt { background: transparent; border: 1px solid var(--rule); color: var(--muted); }
+
+  .why {
+    margin: 12px 0 0;
+    color: var(--ink-2);
+    max-width: 68ch;
+  }
+  .why strong { color: var(--ink); }
+
+  dl.fields { margin: 20px 0 0; display: grid; gap: 0; }
+  .f {
+    display: grid;
+    grid-template-columns: 210px 1fr;
+    gap: 6px 22px;
+    padding: 11px 0;
+    border-top: 1px solid var(--rule-soft);
+    align-items: baseline;
+  }
+  .f dt { font-weight: 700; color: var(--ink); }
+  .f dd { margin: 0; color: var(--ink-2); max-width: 62ch; }
+  .f dd em { color: var(--muted); font-style: normal; }
+
+  .note {
+    margin-top: 20px;
+    padding: 13px 16px;
+    border: 1px solid var(--warn-rule);
+    background: var(--warn-soft);
+    border-radius: 3px;
+    font-size: .95rem;
+  }
+  .note b { color: var(--warn); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .chips code { background: var(--accent-soft); border-color: transparent; color: var(--ink); }
+
+  /* ---------- closing ---------- */
+  .closing {
+    margin-top: 44px;
+    padding-top: 30px;
+    border-top: 2px solid var(--ink);
+  }
+  .closing h2 {
+    font-family: "Frank Ruhl Libre", Georgia, serif;
+    font-size: 1.6rem;
+    margin: 0 0 16px;
+  }
+  .extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 18px; }
+  .extra div { padding: 16px 18px; background: var(--surface); border: 1px solid var(--rule); border-radius: 3px; }
+  .extra h4 { margin: 0 0 6px; font-size: 1rem; }
+  .extra p { margin: 0; color: var(--ink-2); font-size: .93rem; }
+
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (max-width: 860px) {
+    .cols { grid-template-columns: 1fr; gap: 26px; }
+    nav.index { position: static; }
+    nav.index ol { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); display: grid; }
+    .f { grid-template-columns: 1fr; gap: 2px; }
+    section.step { padding: 22px 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="lead-col">
+      <h1>מדריך ההגדרות של PGL</h1>
+      <p>מה למלא בכל אחד מ‑16 מסכי אשף ההקמה, למה כל שדה משמש, ומה עלול להשתבש אם ימולא לא נכון.</p>
+    </div>
+    <div class="tally">
+      <div><b>16</b><span>מסכים</span></div>
+      <div><b>11</b><span>חובה</span></div>
+      <div><b>5</b><span>רשות</span></div>
+    </div>
+  </header>
+
+  <div class="intro">
+    <h2>לפני שמתחילים</h2>
+    <ol>
+      <li>נכנסים למערכת ומגיעים אוטומטית לאשף ההגדרות. אפשר גם להגיע אליו דרך <code>/settings/wizard</code>.</li>
+      <li>ממלאים כל מסך ולוחצים <strong>שמור</strong>. מעבר בין מסכים בלי שמירה מאבד את מה שהוקלד.</li>
+      <li>המסכים המסומנים <strong>חובה</strong> חוסמים את סיום האשף. מסכי רשות אפשר להשלים בהמשך.</li>
+      <li>אחרי שכל מסכי החובה ירוקים, לוחצים <strong>סיום אשף</strong>. עד אז המערכת חוסמת פעולות עסקיות.</li>
+      <li>כל הגדרה ניתנת לשינוי גם אחרי הסיום, למעט מספור החשבונות. עליו כדאי להתעכב.</li>
+    </ol>
+  </div>
+
+  <div class="cols">
+
+    <nav class="index" aria-label="מסכי האשף">
+      <h2>מסכי האשף</h2>
+      <ol>
+        <li><a href="#s1"><span class="n">01</span><span>פרטי החברה</span></a></li>
+        <li><a href="#s2"><span class="n">02</span><span>דואר יוצא</span></a></li>
+        <li><a href="#s3"><span class="n">03</span><span>מחלקות</span></a></li>
+        <li><a href="#s4"><span class="n">04</span><span>דרגות ותעריפים</span></a></li>
+        <li><a href="#s5"><span class="n">05</span><span>מע״מ</span></a></li>
+        <li><a href="#s6"><span class="n">06</span><span>הצמדה למדד</span></a></li>
+        <li><a href="#s7"><span class="n">07</span><span>מספור</span></a></li>
+        <li><a href="#s8"><span class="n">08</span><span>שלבים ותבניות</span></a></li>
+        <li><a href="#s9"><span class="n">09</span><span>טבלאות עזר</span><span class="opt">רשות</span></a></li>
+        <li><a href="#s10"><span class="n">10</span><span>דיווח שעות</span></a></li>
+        <li><a href="#s11"><span class="n">11</span><span>הרשאות</span><span class="opt">רשות</span></a></li>
+        <li><a href="#s12"><span class="n">12</span><span>חתימות</span></a></li>
+        <li><a href="#s13"><span class="n">13</span><span>חשבונות</span></a></li>
+        <li><a href="#s14"><span class="n">14</span><span>ספקים</span></a></li>
+        <li><a href="#s15"><span class="n">15</span><span>הנהלת חשבונות</span><span class="opt">רשות</span></a></li>
+        <li><a href="#s16"><span class="n">16</span><span>אבטחה</span><span class="opt">רשות</span></a></li>
+      </ol>
+    </nav>
+
+    <main class="steps">
+
+      <!-- 1 -->
+      <section class="step" id="s1">
+        <div class="head"><span class="num">01</span><h3>פרטי החברה</h3><span class="badge badge-req">חובה</span></div>
+        <p class="why">כל מה שמוקלד כאן <strong>מודפס על גבי חשבון העסקה</strong> שנשלח ללקוח: הכותרת, הלוגו, פרטי ההתקשרות ופרטי הבנק לתשלום. זה המסך שקובע איך החברה נראית כלפי חוץ.</p>
+        <dl class="fields">
+          <div class="f"><dt>שם החברה</dt><dd>השם המשפטי המלא, כפי שהוא מופיע ברשם החברות. מגיע מלא מראש.</dd></div>
+          <div class="f"><dt>ח.פ</dt><dd>מספר החברה. מודפס בכותרת החשבון. מגיע מלא מראש.</dd></div>
+          <div class="f"><dt>כתובת</dt><dd>כתובת המשרד לתכתובת. שורה אחת, כפי שתופיע על החשבון.</dd></div>
+          <div class="f"><dt>טלפון ופקס</dt><dd>מופיעים בכותרת החשבון. אפשר להשאיר פקס ריק.</dd></div>
+          <div class="f"><dt>אתר ודוא״ל</dt><dd>כתובת האתר והמייל הכללי של החברה. מופיעים בתחתית החשבון.</dd></div>
+          <div class="f"><dt>לוגו</dt><dd>קובץ תמונה שמודפס בראש כל חשבון. עדיף PNG ברקע שקוף ורזולוציה גבוהה, כי ה‑PDF מודפס.</dd></div>
+          <div class="f"><dt>תו ISO</dt><dd>תו התקן של החברה, אם יש. מודפס לצד הלוגו. <em>אפשר לדלג.</em></dd></div>
+          <div class="f"><dt>פרטי בנק</dt><dd>בנק, סניף, מספר חשבון ושם המוטב. מודפסים על החשבון כדי שהלקוח ידע לאן להעביר. שגיאה כאן מעכבת תשלומים.</dd></div>
+          <div class="f"><dt>טקסט תחתית ל‑PDF</dt><dd>שורה שמופיעה בתחתית כל עמוד בחשבון. למשל הערת סודיות או משפט תדמית. <em>אפשר להשאיר ריק.</em></dd></div>
+        </dl>
+      </section>
+
+      <!-- 2 -->
+      <section class="step" id="s2">
+        <div class="head"><span class="num">02</span><h3>דואר יוצא</h3><span class="badge badge-req">חובה</span></div>
+        <p class="why">מגדיר <strong>מי שולח</strong> את המיילים מהמערכת ו<strong>מה כתוב בהם</strong>. חל על שליחת חשבונות ללקוחות, תזכורות דיווח שעות, תזכורות תשלום ודוחות מתוזמנים.</p>
+        <dl class="fields">
+          <div class="f"><dt>שם השולח</dt><dd>השם שהלקוח יראה בתיבה שלו. למשל שם החברה.</dd></div>
+          <div class="f"><dt>כתובת השולח</dt><dd>הכתובת שממנה נשלח הדואר, למשל <code>no-reply@pgl.co.il</code>. חייבת להיות בדומיין שאומת במערכת הדיוור.</dd></div>
+          <div class="f"><dt>כתובת לתשובה</dt><dd>לאן יגיעו תשובות של לקוחות. כאן שמים כתובת אנושית שמישהו קורא.</dd></div>
+          <div class="f"><dt>עותק לחשבונות</dt><dd>כתובות שיקבלו עותק מכל חשבון שנשלח. נוח להנהלת חשבונות פנימית.</dd></div>
+          <div class="f"><dt>תבניות המיילים</dt><dd>נושא וגוף לארבעה סוגים: שליחת חשבון, תזכורת דיווח שעות, תזכורת תשלום, ודוח מתוזמן. ממולאות מראש בנוסח סביר וניתנות לעריכה.</dd></div>
+        </dl>
+        <p class="why" style="margin-top:18px">בתוך התבניות אפשר לשלב שדות שמתמלאים אוטומטית בזמן השליחה:</p>
+        <div class="chips">
+          <code>{{invoice_number}}</code><code>{{project_name}}</code><code>{{work_number}}</code>
+          <code>{{contact_first_name}}</code><code>{{total}}</code><code>{{due_date}}</code>
+          <code>{{sender_name}}</code><code>{{company_name}}</code><code>{{report_name}}</code><code>{{date}}</code>
+        </div>
+        <div class="note"><b>שימו לב:</b> שליחת מיילים תתחיל לעבוד רק אחרי שהדומיין של החברה יאומת אצל ספק הדיוור. עד אז אפשר למלא את המסך, אבל ניסיון לשלוח חשבון ייכשל.</div>
+      </section>
+
+      <!-- 3 -->
+      <section class="step" id="s3">
+        <div class="head"><span class="num">03</span><h3>מחלקות</h3><span class="badge badge-req">חובה</span></div>
+        <p class="why">המחלקות הן חוליית הביניים בין העובד לחברה. הן קובעות <strong>מי רואה את מי</strong>, לאן נשלחות תזכורות, ואיך מקובצים דוחות עלות ורווחיות.</p>
+        <dl class="fields">
+          <div class="f"><dt>שם המחלקה</dt><dd>למשל תנועה, כבישים, תכנון ערים. כפי שמקובל בחברה.</dd></div>
+          <div class="f"><dt>קוד</dt><dd>מזהה קצר וייחודי. משמש בייבוא נתונים מאדמירל, ולכן כדאי שיהיה עקבי.</dd></div>
+          <div class="f"><dt>מנהל מחלקה</dt><dd>העובד שמנהל אותה. הוא מקבל עותק של תזכורות דיווח שעות של עובדי המחלקה, ורואה את השעות שלהם.</dd></div>
+        </dl>
+        <div class="note"><b>חשוב:</b> מחלקה בלי מנהל משמעותה שאף אחד לא מקבל התראות על עובדיה. אפשר להגדיר מנהל בהמשך, אחרי שהעובדים יוזנו למערכת.</div>
+      </section>
+
+      <!-- 4 -->
+      <section class="step" id="s4">
+        <div class="head"><span class="num">04</span><h3>דרגות ותעריפים</h3><span class="badge badge-req">חובה</span></div>
+        <p class="why">הדרגה היא רמת הבכירות של העובד, והתעריף הוא <strong>כמה החברה מחייבת את הלקוח על שעה</strong> של עובד בדרגה הזו. זה הבסיס לכל חוזה שמחויב לפי שעות.</p>
+        <dl class="fields">
+          <div class="f"><dt>רשימת הדרגות</dt><dd>למשל מהנדס בכיר, מהנדס, הנדסאי, שרטט. אפשר להוסיף ולסדר.</dd></div>
+          <div class="f"><dt>תעריף חיוב שעתי</dt><dd>הסכום בשקלים שהלקוח מחויב עבור שעה בדרגה הזו.</dd></div>
+          <div class="f"><dt>בתוקף מתאריך</dt><dd>מאיזה תאריך התעריף חל. כך המערכת שומרת היסטוריה.</dd></div>
+          <div class="f"><dt>מצב ברירת מחדל בחוזה</dt><dd>האם חוזה חדש מחייב לפי טבלת התעריפים, או לפי תעריף ייעודי שמוקלד ידנית בחוזה.</dd></div>
+        </dl>
+        <div class="note"><b>אל תערכו תעריף קיים כדי לעדכן מחיר.</b> מוסיפים שורה חדשה עם תאריך תחילת תוקף חדש. כך חשבונות ישנים ממשיכים להציג את התעריף שהיה נכון באותו זמן.</div>
+      </section>
+
+      <!-- 5 -->
+      <section class="step" id="s5">
+        <div class="head"><span class="num">05</span><h3>מע״מ</h3><span class="badge badge-req">חובה</span></div>
+        <p class="why">שיעור המע״מ שמתווסף לכל חשבון. המערכת בוחרת אוטומטית את השיעור <strong>שהיה בתוקף בתאריך החשבון</strong>, ולא את השיעור הנוכחי.</p>
+        <dl class="fields">
+          <div class="f"><dt>שיעור נוכחי</dt><dd>באחוזים. מגיע מלא מראש בשיעור העדכני.</dd></div>
+          <div class="f"><dt>בתוקף מתאריך</dt><dd>היום שממנו השיעור חל.</dd></div>
+          <div class="f"><dt>היסטוריה</dt><dd>כל השיעורים הקודמים, לצורך חשבונות רטרואקטיביים וחשבונות שיובאו מאדמירל.</dd></div>
+        </dl>
+        <div class="note"><b>כשהמע״מ משתנה במשק:</b> מוסיפים שורה חדשה עם תאריך התחילה. לעולם לא עורכים שורה קיימת, אחרת חשבונות ישנים ישתנו רטרואקטיבית.</div>
+      </section>
+
+      <!-- 6 -->
+      <section class="step" id="s6">
+        <div class="head"><span class="num">06</span><h3>הצמדה למדד</h3><span class="badge badge-req">חובה</span></div>
+        <p class="why">חוזים רבים צמודים למדד המחירים לצרכן. המסך הזה קובע <strong>איך המערכת מחשבת את תוספת ההצמדה</strong> ומאיפה היא לוקחת את ערכי המדד.</p>
+        <dl class="fields">
+          <div class="f"><dt>סוג המדד</dt><dd>מדד המחירים לצרכן. זה המדד היחיד שבשימוש.</dd></div>
+          <div class="f"><dt>משיכה אוטומטית מהלמ״ס</dt><dd>כשמופעל, המערכת מושכת את המדד החדש מהלשכה המרכזית לסטטיסטיקה בכל חודש. מומלץ להשאיר פעיל.</dd></div>
+          <div class="f"><dt>רצפת הצמדה כברירת מחדל</dt><dd>האם חוזה חדש יוגדר כך שההצמדה לא יכולה לרדת מתחת לבסיס. כלומר, ירידת מדד לא מקטינה את החשבון.</dd></div>
+          <div class="f"><dt>כלל חודש ההצמדה</dt><dd>לפי איזה מדד מחושב חשבון: המדד האחרון הידוע, או מדד החודש הקודם. שני הנהלים מקובלים, צריך לבחור את זה שסוכם עם הלקוחות.</dd></div>
+        </dl>
+      </section>
+
+      <!-- 7 -->
+      <section class="step" id="s7">
+        <div class="head"><span class="num">07</span><h3>מספור</h3><span class="badge badge-req">חובה</span></div>
+        <p class="why">שני מספרים רצים: מספר העבודה של פרויקט, ומספר החשבון. <strong>זה המסך הכי קריטי באשף.</strong></p>
+        <dl class="fields">
+          <div class="f"><dt>מספר עבודה: ידני או אוטומטי</dt><dd>האם מקלידים מספר עבודה לכל פרויקט, או שהמערכת מקצה את הבא בתור.</dd></div>
+          <div class="f"><dt>מספר עבודה הבא</dt><dd>רלוונטי רק במצב אוטומטי. המספר שיוקצה לפרויקט הבא.</dd></div>
+          <div class="f"><dt>מספור חשבונות: גלובלי או שנתי</dt><dd>גלובלי הוא רצף אחד שממשיך לנצח. שנתי מתאפס בכל שנה ומוסיף את השנה למספר.</dd></div>
+          <div class="f"><dt>מספר החשבון הבא</dt><dd>המספר שיינתן לחשבון הראשון שיונפק מהמערכת.</dd></div>
+          <div class="f"><dt>קידומת</dt><dd>תווים קבועים לפני המספר, אם נהוג בחברה. <em>אפשר להשאיר ריק.</em></dd></div>
+        </dl>
+        <div class="note"><b>חובה לוודא לפני החשבון הראשון:</b> מספר החשבון הבא חייב להמשיך בדיוק את הרצף שאדמירל היה מנפיק. בדקו מה היה מספר החשבון האחרון שהופק שם, והזינו כאן את הבא אחריו. מספר כפול או קפיצה ברצף היא בעיה מול רשויות המס, ותיקון אחרי הנפקה מחייב ביטול החשבון.</div>
+      </section>
+
+      <!-- 8 -->
+      <section class="step" id="s8">
+        <div class="head"><span class="num">08</span><h3>שלבים ותבניות</h3><span class="badge badge-req">חובה</span></div>
+        <p class="why">רוב החוזים מחויבים לפי אבני דרך, למשל אחוז בחתימה, אחוז בהגשה, אחוז באישור. כאן מגדירים את <strong>מאגר שמות השלבים</strong> ואת <strong>התבניות החוזרות</strong>, כדי לא לבנות כל חוזה מאפס.</p>
+        <dl class="fields">
+          <div class="f"><dt>שמות שלבים</dt><dd>המאגר של כל השלבים שבשימוש בחברה. למשל חתימת הסכם, תכנון מוקדם, הגשה לוועדה, אישור סופי.</dd></div>
+          <div class="f"><dt>תבנית אבני דרך</dt><dd>שם לתבנית, למשל ״תב״ע סטנדרטית״, ובתוכה רשימת שלבים.</dd></div>
+          <div class="f"><dt>אחוז ברירת מחדל</dt><dd>כמה אחוזים מסכום תת‑החוזה משויכים לכל שלב.</dd></div>
+          <div class="f"><dt>סך האחוזים</dt><dd>המערכת מציגה את הסכום. תבנית תקינה מסתכמת ב‑100%.</dd></div>
+        </dl>
+        <div class="note"><b>טיפ:</b> אפשר להתחיל מתבנית אחת או שתיים שמכסות את רוב העבודות, ולהוסיף עוד בהמשך. תבנית היא נקודת פתיחה בלבד, ותמיד ניתן לשנות אחוזים בתוך החוזה עצמו.</div>
+      </section>
+
+      <!-- 9 -->
+      <section class="step optional" id="s9">
+        <div class="head"><span class="num">09</span><h3>טבלאות עזר</h3><span class="badge badge-opt">רשות</span></div>
+        <p class="why">רשימות הבחירה שמופיעות בתפריטים הנפתחים ברחבי המערכת. כולן מגיעות מלאות מראש בערכים סבירים, ואפשר לשנות אותן בכל שלב.</p>
+        <dl class="fields">
+          <div class="f"><dt>סטטוסים</dt><dd>מצבי פרויקט וחוזה: טיוטה, בעבודה, מוקפא, הושלם, בוטל. אפשר לסמן סטטוס כסופי, כלומר כזה שסוגר את החוזה.</dd></div>
+          <div class="f"><dt>סוגי חוזה</dt><dd>מחיר פאושלי, לפי שעות, ריטיינר, אחוז מעלות, לפי יחידות, מעורב.</dd></div>
+          <div class="f"><dt>סוגי יחידות</dt><dd>ליחידות חיוב, למשל צומת, ק״מ, גיליון.</dd></div>
+          <div class="f"><dt>סוגי מסמכים</dt><dd>הסיווג שמוצמד לקובץ שמעלים, למשל הסכם חתום, תכנית, התכתבות.</dd></div>
+        </dl>
+      </section>
+
+      <!-- 10 -->
+      <section class="step" id="s10">
+        <div class="head"><span class="num">10</span><h3>דיווח שעות</h3><span class="badge badge-req">חובה</span></div>
+        <p class="why">כללי כרטיס השעות: מה נחשב יום עבודה מלא, <strong>מתי תקופה נסגרת לעריכה</strong>, ומתי המערכת שולחת תזכורות לעובדים שלא דיווחו.</p>
+        <dl class="fields">
+          <div class="f"><dt>תקן שעות יומי</dt><dd>כמה שעות נחשבות יום עבודה מלא. ברירת המחדל 8.5. משמש לחישוב תפוקה ולהתראות.</dd></div>
+          <div class="f"><dt>ימי עבודה</dt><dd>אילו ימים בשבוע נחשבים ימי עבודה. ברירת המחדל ראשון עד חמישי.</dd></div>
+          <div class="f"><dt>כלל נעילת תקופה</dt><dd>מתי חודש נסגר ולא ניתן עוד לערוך בו שעות: בסוף החודש העוקב, בסוף אותו חודש, או לעולם לא. נעילה מגנה על חשבונות שכבר הונפקו מדיווחים רטרואקטיביים.</dd></div>
+          <div class="f"><dt>תזכורת אחרי כמה ימים</dt><dd>אחרי כמה ימים ללא דיווח נשלחת תזכורת ראשונה.</dd></div>
+          <div class="f"><dt>חזרה על תזכורת</dt><dd>כל כמה ימים חוזרת התזכורת עד שהעובד מדווח.</dd></div>
+          <div class="f"><dt>עותק למנהל המחלקה</dt><dd>האם מנהל המחלקה מקבל עותק של התזכורת.</dd></div>
+          <div class="f"><dt>אישור דיווח עתידי</dt><dd>האם מותר לדווח שעות על תאריך שעוד לא הגיע. מומלץ להשאיר כבוי.</dd></div>
+          <div class="f"><dt>מקסימום שעות ליום</dt><dd>תקרה שמונעת טעויות הקלדה, למשל דיווח של 80 שעות ביום אחד.</dd></div>
+        </dl>
+      </section>
+
+      <!-- 11 -->
+      <section class="step optional" id="s11">
+        <div class="head"><span class="num">11</span><h3>הרשאות</h3><span class="badge badge-opt">רשות</span></div>
+        <p class="why">שלוש שכבות משתמשים: אדמין, מנהל ועובד. המסך מאפשר <strong>לכבות או להדליק יכולות</strong> לכל שכבה. מגיע עם ברירות מחדל סבירות, ורוב החברות לא נוגעות בו.</p>
+        <dl class="fields">
+          <div class="f"><dt>יכולות לפי קבוצה</dt><dd>דיווח שעות, דוחות, לקוחות וספקים, פרויקטים וחוזים, חשבונות ותקבולים, חשבוניות ספקים, מערכת.</dd></div>
+          <div class="f"><dt>יכולות נעולות</dt><dd>חלק מהיכולות שמורות לאדמין בלבד ולא ניתנות לפתיחה, למשל שינוי הגדרות מערכת.</dd></div>
+          <div class="f"><dt>היקף צפייה בעובדים אחרים</dt><dd>האם מנהל או עובד רואים ומדווחים עבור עובדי המחלקה שלהם בלבד, או עבור כל החברה.</dd></div>
+        </dl>
+      </section>
+
+      <!-- 12 -->
+      <section class="step" id="s12">
+        <div class="head"><span class="num">12</span><h3>חתימות</h3><span class="badge badge-req">חובה</span></div>
+        <p class="why">החתימה שמודפסת בתחתית חשבון העסקה. בלי חתימה מוגדרת, חשבון שיישלח ללקוח ייצא בלי חתימה.</p>
+        <dl class="fields">
+          <div class="f"><dt>תמונת חתימה</dt><dd>סריקה של החתימה. <strong>PNG ברקע שקוף</strong> נותן את התוצאה הטובה ביותר, כי החתימה מודפסת מעל טקסט.</dd></div>
+          <div class="f"><dt>תפקיד לחתימה</dt><dd>מה מודפס מתחת לחתימה, למשל ״מנכ״ל״ או ״מנהל הפרויקט״.</dd></div>
+          <div class="f"><dt>חותם ברירת מחדל</dt><dd>מי חותם על חשבון חדש כשלא נבחר אחרת.</dd></div>
+        </dl>
+        <div class="note"><b>איך משיגים PNG שקוף:</b> חותמים על דף לבן, מצלמים או סורקים, ומסירים את הרקע. אם אין אפשרות, גם JPG על רקע לבן יעבוד, פשוט ייראה כמו מלבן לבן סביב החתימה.</div>
+      </section>
+
+      <!-- 13 -->
+      <section class="step" id="s13">
+        <div class="head"><span class="num">13</span><h3>חשבונות</h3><span class="badge badge-req">חובה</span></div>
+        <p class="why">ברירות המחדל של כל חשבון חדש, ומה מוצג בו. מה שנקבע כאן חוסך הקלדה חוזרת, וניתן לשינוי בכל חשבון בנפרד.</p>
+        <dl class="fields">
+          <div class="f"><dt>תנאי תשלום</dt><dd>כמה ימים מתאריך החשבון עד מועד התשלום. ברירת המחדל 30. אפשר לדרוס לכל לקוח בנפרד.</dd></div>
+          <div class="f"><dt>יום חיוב ריטיינר</dt><dd>באיזה יום בחודש נוצרים אוטומטית חשבונות הריטיינר החודשיים.</dd></div>
+          <div class="f"><dt>טקסט פתיחה</dt><dd>המשפט שמופיע בראש כל חשבון מעל שורות החיוב. ממולא מראש.</dd></div>
+          <div class="f"><dt>הערות ברירת מחדל</dt><dd>טקסט שמופיע בתחתית החשבון. <em>אפשר להשאיר ריק.</em></dd></div>
+          <div class="f"><dt>דרישת אישור כפול</dt><dd>האם חשבון מחייב אישור של שני מורשים לפני שליחה.</dd></div>
+          <div class="f"><dt>ספי גיול</dt><dd>אחרי כמה ימי פיגור חשבון נכנס לקטגוריית חוב. ברירת המחדל 30, 60 ו‑90 יום.</dd></div>
+          <div class="f"><dt>חותם ברירת מחדל</dt><dd>מי חותם, אם לא נבחר אחרת.</dd></div>
+          <div class="f"><dt>קיבוץ שורות שעות</dt><dd>האם שורות חיוב לפי שעות מקובצות לפי דרגה או לפי עובד. קיבוץ לפי דרגה חושף פחות מידע ללקוח.</dd></div>
+          <div class="f"><dt>צירוף נספח שעות</dt><dd>האם לצרף לחשבון פירוט של השעות שחויבו.</dd></div>
+          <div class="f"><dt>הצגת ניכוי במקור</dt><dd>האם להציג שורת ניכוי במקור בחשבון.</dd></div>
+          <div class="f"><dt>הצגת עכבון</dt><dd>האם להציג שורת עכבון, כלומר אחוז שהלקוח מעכב עד סיום העבודה.</dd></div>
+        </dl>
+      </section>
+
+      <!-- 14 -->
+      <section class="step" id="s14">
+        <div class="head"><span class="num">14</span><h3>ספקים</h3><span class="badge badge-req">חובה</span></div>
+        <p class="why">כללי אישור חשבוניות שמתקבלות מקבלני משנה ויועצים, וההתראות שמונעות תשלום ביתר.</p>
+        <dl class="fields">
+          <div class="f"><dt>מורשי אישור</dt><dd>מי רשאי לאשר חשבונית ספק לתשלום.</dd></div>
+          <div class="f"><dt>מספר אישורים נדרש</dt><dd>כמה אישורים נחוצים לפני שחשבונית עוברת לתשלום. ברירת המחדל שניים.</dd></div>
+          <div class="f"><dt>התראת חריגה מתקציב</dt><dd>התראה כשסך החשבוניות מספק עובר את סכום ההתקשרות איתו.</dd></div>
+          <div class="f"><dt>התראת פער מול הלקוח</dt><dd>התראה כשההתקדמות שאושרה לספק גבוהה מזו שחויבה ללקוח. כלומר, החברה משלמת לפני שהיא גובה.</dd></div>
+        </dl>
+      </section>
+
+      <!-- 15 -->
+      <section class="step optional" id="s15">
+        <div class="head"><span class="num">15</span><h3>הנהלת חשבונות</h3><span class="badge badge-opt">רשות</span></div>
+        <p class="why">מגדיר איך מייצאים את החשבונות והתקבולים למערכת הנהלת החשבונות של החברה. אפשר לדלג ולחזור לזה אחרי שהמערכת תעבוד.</p>
+        <dl class="fields">
+          <div class="f"><dt>שם התוכנה</dt><dd>מערכת הנהלת החשבונות שאליה מייצאים.</dd></div>
+          <div class="f"><dt>פורמט ייצוא</dt><dd>קובץ אקסל או CSV, לפי מה שהתוכנה קולטת.</dd></div>
+          <div class="f"><dt>מיפוי שדות</dt><dd>התאמה בין שמות השדות במערכת לשמות שהתוכנה מצפה לקבל. מומלץ לקבל מרואה החשבון את רשימת העמודות הנדרשת.</dd></div>
+          <div class="f"><dt>מייל לייצוא אוטומטי</dt><dd>לאן נשלח קובץ הייצוא. בדרך כלל להנהלת החשבונות.</dd></div>
+          <div class="f"><dt>תדירות</dt><dd>ידני, יומי או חודשי.</dd></div>
+        </dl>
+      </section>
+
+      <!-- 16 -->
+      <section class="step optional" id="s16">
+        <div class="head"><span class="num">16</span><h3>אבטחה</h3><span class="badge badge-opt">רשות</span></div>
+        <p class="why">מדיניות הכניסה למערכת.</p>
+        <dl class="fields">
+          <div class="f"><dt>אימות דו‑שלבי</dt><dd>לאילו תפקידים נדרש אימות נוסף בכניסה. <strong>כרגע מוגדר ללא אימות דו‑שלבי לאף תפקיד</strong>, לפי החלטת החברה.</dd></div>
+          <div class="f"><dt>תוקף חיבור</dt><dd>אחרי כמה שעות משתמש מנותק ונדרש להתחבר מחדש. ברירת המחדל 12 שעות.</dd></div>
+        </dl>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="closing">
+    <h2>אחרי סיום האשף</h2>
+    <p style="max-width:68ch;color:var(--ink-2);margin:0">שלושה מסכים נוספים אינם חלק מהאשף, אבל כדאי לעבור עליהם בשבוע הראשון. הם נמצאים תחת <strong>הגדרות</strong> בתפריט.</p>
+    <div class="extra">
+      <div>
+        <h4>התראות</h4>
+        <p>לכל אירוע במערכת אפשר לקבוע אם הוא מופיע בפעמון ואם הוא נשלח גם במייל.</p>
+      </div>
+      <div>
+        <h4>קבצים</h4>
+        <p>אילו סוגי קבצים מותר להעלות ומה הגודל המרבי. ברירת המחדל 50 מגה‑בייט.</p>
+      </div>
+      <div>
+        <h4>התראות חוזה</h4>
+        <p>באילו אחוזי התקדמות לשלוח התראה על חוזה. ברירת המחדל 80% ו‑100%.</p>
+      </div>
+    </div>
+    <p style="max-width:68ch;color:var(--ink-2);margin-top:22px">כשכל מסכי החובה מסומנים כהושלמו, כפתור <strong>סיום אשף</strong> נפתח. מרגע הלחיצה המערכת פתוחה לעבודה: אפשר להקים לקוחות, פרויקטים, חוזים ולהתחיל לדווח שעות.</p>
+  </div>
+
+</div>

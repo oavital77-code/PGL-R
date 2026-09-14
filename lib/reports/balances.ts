@@ -1,5 +1,6 @@
 import "server-only";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { outer } from "@/lib/db/sql";
 import { db } from "@/lib/db";
 import {
   clients,
@@ -193,7 +194,7 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
         kind: invoices.invoiceKind,
         subtotalBase: invoices.subtotalBase,
         total: invoices.total,
-        allocated: sql<string>`coalesce((select sum(a.amount) from receipt_allocations a where a.invoice_id = ${invoices.id} and a.cancelled_at is null), 0)`,
+        allocated: sql<string>`coalesce((select sum(a.amount) from receipt_allocations a where a.invoice_id = ${outer(invoices.id)} and a.cancelled_at is null), 0)`,
       })
       .from(invoices)
       .where(and(isNull(invoices.deletedAt), inArray(invoices.contractId, contractIds))),

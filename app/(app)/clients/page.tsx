@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { and, asc, eq, ilike, isNull, or, sql } from "drizzle-orm";
+import { outer } from "@/lib/db/sql";
 import { getTranslations } from "next-intl/server";
 import { can, requireCapability } from "@/lib/auth/authorize";
 import { db } from "@/lib/db";
@@ -20,9 +21,9 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
     db
       .select({
         c: clients,
-        activeContracts: sql<number>`(select count(*) from ${contracts} where ${contracts.clientId} = ${clients.id} and ${contracts.deletedAt} is null and ${contracts.direction} = 'income')`,
-        openBalance: sql<string>`coalesce((select sum(i.total - coalesce((select sum(a.amount) from receipt_allocations a where a.invoice_id = i.id and a.cancelled_at is null),0)) from ${invoices} i where (i.client_id = ${clients.id} or i.paying_client_id = ${clients.id}) and i.status in ('sent','partially_paid','signed','approved') and i.deleted_at is null),0)`,
-        overdue: sql<number>`(select count(*) from ${invoices} i where (i.client_id = ${clients.id} or i.paying_client_id = ${clients.id}) and i.status in ('sent','partially_paid') and i.due_date < ${today} and i.deleted_at is null)`,
+        activeContracts: sql<number>`(select count(*) from ${contracts} where ${contracts.clientId} = ${outer(clients.id)} and ${contracts.deletedAt} is null and ${contracts.direction} = 'income')`,
+        openBalance: sql<string>`coalesce((select sum(i.total - coalesce((select sum(a.amount) from receipt_allocations a where a.invoice_id = i.id and a.cancelled_at is null),0)) from ${invoices} i where (i.client_id = ${outer(clients.id)} or i.paying_client_id = ${outer(clients.id)}) and i.status in ('sent','partially_paid','signed','approved') and i.deleted_at is null),0)`,
+        overdue: sql<number>`(select count(*) from ${invoices} i where (i.client_id = ${outer(clients.id)} or i.paying_client_id = ${outer(clients.id)}) and i.status in ('sent','partially_paid') and i.due_date < ${today} and i.deleted_at is null)`,
       })
       .from(clients)
       .where(and(isNull(clients.deletedAt), sp.inactive === "1" ? undefined : eq(clients.isActive, true), sp.q ? or(ilike(clients.name, `%${sp.q}%`), ilike(clients.taxId, `%${sp.q}%`)) : undefined))

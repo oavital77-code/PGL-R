@@ -1,5 +1,6 @@
 import "server-only";
 import { and, eq, gte, inArray, isNull, lt, lte, sql } from "drizzle-orm";
+import { outer } from "@/lib/db/sql";
 import { db } from "@/lib/db";
 import { invoices, receipts, supplierInvoices, timeEntries, users } from "@/lib/db/schema";
 import { todayLocal } from "@/lib/i18n/format";
@@ -16,7 +17,7 @@ export async function adminKpis() {
 
   const openStatuses = ["sent", "partially_paid", "signed", "approved"] as const;
   const openInv = await db
-    .select({ id: invoices.id, total: invoices.total, dueDate: invoices.dueDate, status: invoices.status, paid: sql<string>`coalesce((select sum(a.amount) from receipt_allocations a where a.invoice_id = ${invoices.id} and a.cancelled_at is null),0)` })
+    .select({ id: invoices.id, total: invoices.total, dueDate: invoices.dueDate, status: invoices.status, paid: sql<string>`coalesce((select sum(a.amount) from receipt_allocations a where a.invoice_id = ${outer(invoices.id)} and a.cancelled_at is null),0)` })
     .from(invoices)
     .where(and(isNull(invoices.deletedAt), inArray(invoices.status, [...openStatuses])));
   let openSum = 0;

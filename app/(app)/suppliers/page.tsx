@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { and, asc, eq, ilike, isNull, or, sql } from "drizzle-orm";
+import { outer } from "@/lib/db/sql";
 import { getTranslations } from "next-intl/server";
 import { can, requireCapability } from "@/lib/auth/authorize";
 import { db } from "@/lib/db";
@@ -20,9 +21,9 @@ export default async function SuppliersPage({ searchParams }: { searchParams: Pr
     db
       .select({
         s: suppliers,
-        budget: sql<string>`coalesce((select sum(${contracts.budgetAmount}) from ${contracts} where ${contracts.supplierId} = ${suppliers.id} and ${contracts.deletedAt} is null),0)`,
-        approved: sql<string>`coalesce((select sum(si.amount_before_vat) from ${supplierInvoices} si join ${contracts} c on c.id = si.contract_id where c.supplier_id = ${suppliers.id} and si.status in ('approved','paid') and si.deleted_at is null),0)`,
-        paid: sql<string>`coalesce((select sum(si.amount_before_vat) from ${supplierInvoices} si join ${contracts} c on c.id = si.contract_id where c.supplier_id = ${suppliers.id} and si.status = 'paid' and si.deleted_at is null),0)`,
+        budget: sql<string>`coalesce((select sum(${contracts.budgetAmount}) from ${contracts} where ${contracts.supplierId} = ${outer(suppliers.id)} and ${contracts.deletedAt} is null),0)`,
+        approved: sql<string>`coalesce((select sum(si.amount_before_vat) from ${supplierInvoices} si join ${contracts} c on c.id = si.contract_id where c.supplier_id = ${outer(suppliers.id)} and si.status in ('approved','paid') and si.deleted_at is null),0)`,
+        paid: sql<string>`coalesce((select sum(si.amount_before_vat) from ${supplierInvoices} si join ${contracts} c on c.id = si.contract_id where c.supplier_id = ${outer(suppliers.id)} and si.status = 'paid' and si.deleted_at is null),0)`,
       })
       .from(suppliers)
       .where(and(isNull(suppliers.deletedAt), sp.inactive === "1" ? undefined : eq(suppliers.isActive, true), sp.q ? or(ilike(suppliers.name, `%${sp.q}%`), ilike(suppliers.field, `%${sp.q}%`)) : undefined))

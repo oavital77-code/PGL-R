@@ -11,3 +11,4 @@ test-results
 .vercel
 .DS_Store
 /drizzle/meta/_journal.json.bak
+tsconfig.tsbuildinfo

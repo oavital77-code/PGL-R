@@ -31,6 +31,7 @@ describe.skipIf(!process.env.DATABASE_URL)("אדרת ברעננה end-to-end bal
         }
         const subs = await db.select({ id: s.subContracts.id }).from(s.subContracts).where(eq(s.subContracts.contractId, c.id));
         for (const sc of subs) {
+          await db.delete(s.timeEntries).where(eq(s.timeEntries.subContractId, sc.id));
           await db.delete(s.milestones).where(eq(s.milestones.subContractId, sc.id));
           await db.delete(s.subContracts).where(eq(s.subContracts.id, sc.id));
         }
@@ -105,5 +106,26 @@ describe.skipIf(!process.env.DATABASE_URL)("אדרת ברעננה end-to-end bal
     const rep2 = await contractBalancesReport({ projectIds: [projectId] });
     expect(rep2.projects[0]!.contracts[0]!.balances.paid).toBe(3_780);
     expect(rep2.projects[0]!.contracts[0]!.balances.openBalance).toBe(3_780);
+  });
+});
+
+describe.skipIf(!process.env.DATABASE_URL)("hours aggregation with historical cost rates", () => {
+  it("sums hours per month and costs them at the rate in effect", async () => {
+    const [p] = await db.select({ id: s.projects.id }).from(s.projects).where(eq(s.projects.workNumber, WORK_NUMBER));
+    const [c] = await db.select({ id: s.contracts.id }).from(s.contracts).where(eq(s.contracts.projectId, p!.id));
+    const [sc] = await db.select({ id: s.subContracts.id }).from(s.subContracts).where(eq(s.subContracts.contractId, c!.id));
+    const [u] = await db.insert(s.users).values({ email: `emp-${Date.now()}@pgl.test`, firstName: "עובד", lastName: "בדיקה", role: "employee" }).returning({ id: s.users.id });
+    await db.insert(s.employeeCostRates).values([{ userId: u!.id, hourlyCost: "100.00", effectiveFrom: "2026-01-01" }, { userId: u!.id, hourlyCost: "120.00", effectiveFrom: "2026-07-01" }]);
+    await db.insert(s.timeEntries).values([
+      { userId: u!.id, subContractId: sc!.id, workDate: "2026-06-30", minutes: 90, description: "בדיקה", reportedByUserId: u!.id },
+      { userId: u!.id, subContractId: sc!.id, workDate: "2026-07-01", minutes: 30, description: "בדיקה", reportedByUserId: u!.id },
+    ]);
+    const rep = await contractBalancesReport({ projectIds: [p!.id] });
+    const sub = rep.projects[0]!.contracts[0]!.subContracts.find((x) => x.id === sc!.id)!;
+    expect(sub.hoursTotal).toBe(2);
+    expect(sub.hoursCost).toBe(210); // 1.5h × 100 + 0.5h × 120
+    expect(sub.hoursByMonth["2026-06"]).toBe(1.5);
+    expect(sub.hoursByMonth["2026-07"]).toBe(0.5);
+    expect(rep.projects[0]!.hoursCost).toBe(210);
   });
 });

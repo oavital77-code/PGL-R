@@ -63,6 +63,12 @@ body {
   @apply bg-background text-foreground antialiased;
 }
 
+/* Keyboard focus is always visible (spec §16.5) */
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
 /* Numbers are always LTR inside cells (spec §16.1) */
 .num {
   direction: ltr;

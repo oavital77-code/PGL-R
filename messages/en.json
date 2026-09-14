@@ -29,7 +29,9 @@
     "search_group_client": "Clients",
     "search_group_supplier": "Suppliers",
     "search_group_invoice": "Invoices",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "skip_to_content": "Skip to content",
+    "main_navigation": "Main navigation"
   },
   "notifications": {
     "title": "Notifications",

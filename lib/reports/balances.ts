@@ -14,23 +14,19 @@ import {
   receiptAllocations,
   subContracts,
   supplierInvoices,
-  timeEntries,
   users,
-  employeeCostRates,
   contractNotes,
 } from "@/lib/db/schema";
 import {
   aggregateBalances,
   computeSubContractBalances,
   computeSubContractTotal,
-  hoursCost,
   milestoneAmounts,
   openingBilled,
   supplierCost,
   type BalanceInvoiceLine,
   type BalanceInvoiceRef,
   type Balances,
-  type CostRate,
   type InvoiceKind,
   type InvoiceStatus,
   type PricingMethod,
@@ -198,8 +194,21 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
       })
       .from(invoices)
       .where(and(isNull(invoices.deletedAt), inArray(invoices.contractId, contractIds))),
-    scIds.length ? db.select({ userId: timeEntries.userId, subContractId: timeEntries.subContractId, workDate: timeEntries.workDate, minutes: timeEntries.minutes }).from(timeEntries).where(and(isNull(timeEntries.deletedAt), inArray(timeEntries.subContractId, scIds))) : [],
-    db.select({ userId: employeeCostRates.userId, effectiveFrom: employeeCostRates.effectiveFrom, hourlyCost: employeeCostRates.hourlyCost }).from(employeeCostRates),
+    // hours aggregated in SQL per sub-contract × month with the historical cost rate (spec §17 – large volumes)
+    scIds.length
+      ? db.execute<{ sub_contract_id: string; month: string; minutes: string; cost: string }>(sql`
+          select te.sub_contract_id, to_char(te.work_date, 'YYYY-MM') as month, sum(te.minutes)::text as minutes,
+                 round(sum(te.minutes / 60.0 * coalesce(r.hourly_cost, 0)), 2)::text as cost
+          from time_entries te
+          left join lateral (
+            select hourly_cost from employee_cost_rates ecr
+            where ecr.user_id = te.user_id and ecr.effective_from <= te.work_date
+            order by ecr.effective_from desc limit 1
+          ) r on true
+          where te.deleted_at is null and te.sub_contract_id in ${scIds}
+          group by te.sub_contract_id, to_char(te.work_date, 'YYYY-MM')`)
+      : Promise.resolve([] as { sub_contract_id: string; month: string; minutes: string; cost: string }[]),
+    Promise.resolve([] as { userId: string; effectiveFrom: string; hourlyCost: string }[]),
     db.select({ contractId: supplierInvoices.contractId, status: supplierInvoices.status, amountBeforeVat: supplierInvoices.amountBeforeVat }).from(supplierInvoices).where(and(isNull(supplierInvoices.deletedAt), inArray(supplierInvoices.contractId, contractIds))),
     db
       .select({ contractId: contractNotes.contractId, body: contractNotes.body, createdAt: contractNotes.createdAt })
@@ -209,8 +218,7 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
   ]);
   void receiptAllocations;
 
-  const ratesByUser = new Map<string, CostRate[]>();
-  for (const r of costRateRows) (ratesByUser.get(r.userId) ?? ratesByUser.set(r.userId, []).get(r.userId)!).push({ effectiveFrom: r.effectiveFrom, hourlyCost: Number(r.hourlyCost) });
+  void costRateRows;
 
   const invById = new Map(invRows.map((i) => [i.id, i]));
   const linesBySc = new Map<string, typeof lineRows>();
@@ -219,8 +227,10 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
   for (const m of msRows) (msBySc.get(m.subContractId) ?? msBySc.set(m.subContractId, []).get(m.subContractId)!).push(m);
   const estBySc = new Map<string, typeof estRows>();
   for (const e of estRows) (estBySc.get(e.subContractId) ?? estBySc.set(e.subContractId, []).get(e.subContractId)!).push(e);
-  const teBySc = new Map<string, typeof teRows>();
-  for (const t of teRows) (teBySc.get(t.subContractId) ?? teBySc.set(t.subContractId, []).get(t.subContractId)!).push(t);
+  const teBySc = new Map<string, { month: string; minutes: number; cost: number }[]>();
+  for (const t of teRows as unknown as { sub_contract_id: string; month: string; minutes: string; cost: string }[]) {
+    (teBySc.get(t.sub_contract_id) ?? teBySc.set(t.sub_contract_id, []).get(t.sub_contract_id)!).push({ month: t.month, minutes: Number(t.minutes), cost: Number(t.cost) });
+  }
   const lastNoteByContract = new Map<string, string>();
   for (const n of noteRows) if (!lastNoteByContract.has(n.contractId)) lastNoteByContract.set(n.contractId, n.body);
   const supByContract = new Map<string, typeof supRows>();
@@ -308,14 +318,16 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
     const byMonth: Record<string, number> = {};
     let minutesTotal = 0;
     let minutesYear = 0;
+    let costTotal = 0;
     for (const t of te) {
-      const mk = t.workDate.slice(0, 7);
+      const mk = t.month;
       if ((!filter.monthsFrom || mk >= filter.monthsFrom) && (!filter.monthsTo || mk <= filter.monthsTo)) {
         byMonth[mk] = (byMonth[mk] ?? 0) + t.minutes;
         monthsSet.add(mk);
       }
       minutesTotal += t.minutes;
-      if (t.workDate.startsWith(today.slice(0, 4))) minutesYear += t.minutes;
+      costTotal += t.cost;
+      if (mk.startsWith(today.slice(0, 4))) minutesYear += t.minutes;
     }
     for (const k of Object.keys(byMonth)) byMonth[k] = Math.round((byMonth[k]! / 60) * 100) / 100;
 
@@ -337,7 +349,7 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
       hoursTotal: Math.round((minutesTotal / 60) * 100) / 100,
       hoursThisYear: Math.round((minutesYear / 60) * 100) / 100,
       hoursByMonth: byMonth,
-      hoursCost: hoursCost(te, ratesByUser),
+      hoursCost: money(costTotal),
     };
     (scByContract.get(sc.contractId) ?? scByContract.set(sc.contractId, []).get(sc.contractId)!).push(row);
   }

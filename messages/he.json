@@ -29,7 +29,9 @@
     "search_group_client": "לקוחות",
     "search_group_supplier": "ספקים",
     "search_group_invoice": "חשבונות",
-    "notifications": "התראות"
+    "notifications": "התראות",
+    "skip_to_content": "דלג לתוכן",
+    "main_navigation": "ניווט ראשי"
   },
   "notifications": {
     "title": "התראות",

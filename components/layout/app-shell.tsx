@@ -85,8 +85,11 @@ export function AppShell({ items, userName, roleLabel, unreadCount, companyName,
 
   return (
     <div className="flex min-h-screen">
+      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:start-2 focus:z-50 focus:rounded-md focus:bg-card focus:px-3 focus:py-2 focus:shadow">
+        {t("skip_to_content")}
+      </a>
       {/* Sidebar – desktop */}
-      <aside className="no-print hidden md:flex w-60 shrink-0 flex-col bg-brand-800 text-white">
+      <aside aria-label={t("main_navigation")} className="no-print hidden md:flex w-60 shrink-0 flex-col bg-brand-800 text-white">
         <div className="flex h-14 items-center gap-2 px-4 border-b border-white/10">
           <div className="text-xl font-bold tracking-tight">PGL</div>
           <div className="truncate text-xs text-brand-200">{companyName}</div>
@@ -143,7 +146,7 @@ export function AppShell({ items, userName, roleLabel, unreadCount, companyName,
           </div>
           <UserButton />
         </header>
-        <main className="flex-1 p-4 md:p-6 pb-20 md:pb-6">{children}</main>
+        <main id="main" tabIndex={-1} className="flex-1 p-4 md:p-6 pb-20 md:pb-6 outline-none">{children}</main>
 
         {/* Bottom nav – mobile (spec §16.4) */}
         <nav className="no-print fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-card md:hidden">

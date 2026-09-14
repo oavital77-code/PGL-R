@@ -9,7 +9,7 @@
 | 4 – דוחות ודשבורד | ✅ הושלם | מחולל דוחות במסך אחד (`/reports`): רישום דוחות (`lib/reports/registry.ts`, 24 דוחות לפי פרק 12.3–12.4), סינונים, בחירת עמודות, קיבוץ, שורות סיכום, גרפים (עמודות/קווים/עוגה), השוואה לתקופה קודמת, הרחבה היררכית, עריכת הערת סטטוס inline מדוח יתרות חוזים, ייצוא xlsx/PDF/הדפסה (נשמר ב-report-exports), תבניות אישיות/משותפות, תזמון דוחות במייל (cron). דשבורד אדמין/מנהל/עובד. בדיקת אינטגרציה מריצה את כל הדוחות. |
 | 5 – התראות והשלמות | ✅ הושלם | כל האירועים בפרק 13 ממומשים דרך `notifyEvent` (מערכת + מייל לפי `/settings/notifications`), גיבוי קבצים ל-R2 ו-dump שבועי (cron), דיווח שגיאות ל-Sentry ללא תלות חיצונית (`SENTRY_DSN`). |
 | 6 – הגירה | ✅ הושלם | תבניות xlsx ל-18 ישויות לפי סדר פרק 15.2 (`/api/imports/template`), העלאה + dry-run עם דוח שגיאות ברמת שורה, ביצוע all-or-nothing בטרנזקציה, rollback ל-batch, דוח פערים מול עמודות admiral_*, עדכון מספור אחרי ייבוא. ייבוא zip של מסמכים (שלב 13 בפרק 15.2) – דרך מסך המסמכים בכל ישות (ראה DEVIATIONS). בדיקת אינטגרציה מבצעת round-trip מלא. |
-| 7 – הקשחה | ⏳ | – |
+| 7 – הקשחה | ✅ הושלם | בדיקות e2e ב-Playwright (`tests/e2e`: זרימות ציבוריות + זרימות מאומתות עם `E2E_EMAIL/E2E_PASSWORD`), CI ב-GitHub Actions (typecheck, lint, unit, integration מול Postgres, build), ביצועים – צבירת שעות/עלויות ב-SQL במנוע היתרות (`lib/reports/balances.ts`) במקום טעינת שורות, נגישות (skip link, `:focus-visible`, aria ב-ניווט), תיעוד: `README.md`, `docs/user-guide-he.md`, `docs/spec.md`, `docs/calc-examples.md`, `DEVIATIONS.md`. |
 
 ## הרצה מקומית
 1. `cp .env.example .env.local` ומלא ערכים (ראה פרק 2.5 באפיון).

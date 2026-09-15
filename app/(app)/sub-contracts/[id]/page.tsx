@@ -65,7 +65,7 @@ export default async function SubContractPage({ params }: { params: Promise<{ id
     getTranslations("pricing"),
     getFormatter(),
   ]);
-  const sr = report.projects[0]?.contracts[0]?.subContracts.find((x) => x.id === id);
+  const sr = report.projects.flatMap((p) => p.contracts).flatMap((x) => x.subContracts).find((x) => x.id === id);
   if (!sr) notFound();
   const locked = s.isLocked || c.isLocked;
   const canEdit = can(user, "contracts.edit") && !locked;

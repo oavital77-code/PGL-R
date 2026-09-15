@@ -24,8 +24,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const [onboarding, company, t, unread] = await Promise.all([getSetting("onboarding"), getSetting("company"), getTranslations("roles"), unreadCount(user.id)]);
   if (!onboarding.completed && user.role !== "admin") redirect("/pending-setup");
+  // Admins land in the wizard until it is complete; elsewhere the banner below nags instead of
+  // redirecting, so a router.refresh() after a save never turns into a redirect mid-render.
   const pathname = (await headers()).get("x-pathname") ?? "";
-  if (!onboarding.completed && user.role === "admin" && !pathname.startsWith("/settings")) redirect("/settings/wizard");
+  if (!onboarding.completed && user.role === "admin" && pathname === "/dashboard") redirect("/settings/wizard");
 
   const items = NAV_ITEMS.filter((i) => i.caps.length === 0 || i.caps.some((c) => can(user, c)));
 

@@ -20,7 +20,7 @@ export async function recomputeContractStatus(tx: Tx, contractId: string): Promi
     let code = c.signedDate ? "active" : "draft";
     if (c.signedDate) {
       const rep = await contractBalancesReport({ contractIds: [contractId] });
-      const b = rep.projects[0]?.contracts[0]?.balances;
+      const b = rep.projects.flatMap((p) => p.contracts).find((x) => x.id === contractId)?.balances;
       if (b && b.totalAmount && b.totalAmount > 0 && b.submitted >= b.totalAmount && b.paid >= b.totalAmount) code = "completed";
     }
     const id = await codeToId(tx, code);

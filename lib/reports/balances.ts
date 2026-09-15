@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { outer } from "@/lib/db/sql";
 import { db } from "@/lib/db";
 import {
@@ -132,9 +132,27 @@ const COUNTED: InvoiceStatus[] = ["approved", "signed", "sent", "partially_paid"
 export async function contractBalancesReport(filter: BalancesFilter = {}): Promise<BalancesReport> {
   const today = todayLocal();
 
+  // A contract-level filter must not drag every project of the company into the report:
+  // resolve the projects that own the requested contracts / sub-contracts first.
+  let projectFilterIds = filter.projectIds;
+  if (!projectFilterIds && (filter.contractIds || filter.subContractIds)) {
+    const owners = await db
+      .select({ projectId: contracts.projectId })
+      .from(contracts)
+      .leftJoin(subContracts, eq(subContracts.contractId, contracts.id))
+      .where(
+        or(
+          filter.contractIds ? inArray(contracts.id, filter.contractIds) : undefined,
+          filter.subContractIds ? inArray(subContracts.id, filter.subContractIds) : undefined,
+        ),
+      );
+    projectFilterIds = [...new Set(owners.map((o) => o.projectId))];
+    if (projectFilterIds.length === 0) return { projects: [], months: [] };
+  }
+
   const projWhere = and(
     isNull(projects.deletedAt),
-    filter.projectIds ? inArray(projects.id, filter.projectIds) : undefined,
+    projectFilterIds ? inArray(projects.id, projectFilterIds) : undefined,
     filter.clientIds ? inArray(projects.clientId, filter.clientIds) : undefined,
   );
   const projRows = await db

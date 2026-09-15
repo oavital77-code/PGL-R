@@ -122,7 +122,14 @@
     "invalid_email": "Invalid e-mail",
     "invalid_date": "Invalid date",
     "duplicate": "Duplicate value",
-    "locked": "Record is locked"
+    "locked": "Record is locked",
+    "page_title": "Something went wrong",
+    "page_body": "The action did not complete. Try again; if it keeps happening, contact the administrator with the error code.",
+    "retry": "Try again",
+    "go_home": "Go to home",
+    "error_code": "Error code",
+    "not_found_title": "Page not found",
+    "not_found_body": "The link is wrong or the item was deleted."
   },
   "dashboard": {
     "title": "Dashboard",

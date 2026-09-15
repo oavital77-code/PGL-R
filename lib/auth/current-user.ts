@@ -50,7 +50,10 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
     }
   }
   const [permissions, security] = await Promise.all([getSetting("permissions"), getSetting("security")]);
-  const cu = await clerkCurrentUser();
+  const mfaRequired = security.mfa_required_roles.includes(row.role);
+  // Clerk's Backend API is only consulted when MFA is actually enforced for this role:
+  // every other render must not pay a network round-trip (and a dev-instance rate limit) for it.
+  const mfaEnabled = mfaRequired ? Boolean((await clerkCurrentUser())?.twoFactorEnabled) : true;
   const today = new Date().toISOString().slice(0, 10);
   const isActive = row.isActive && !row.deletedAt && (!row.employmentEnd || row.employmentEnd >= today);
   const caps = roleCapabilities(row.role, permissions);
@@ -67,8 +70,8 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
     isActive,
     capabilities: caps,
     othersScope: row.role === "admin" ? "all" : (permissions.others_scope[row.role] as OthersScope),
-    mfaEnabled: Boolean(cu?.twoFactorEnabled),
-    mfaRequired: security.mfa_required_roles.includes(row.role),
+    mfaEnabled,
+    mfaRequired,
     signatureTitle: row.signatureTitle,
     hasSignature: Boolean(row.signatureImagePath),
   };

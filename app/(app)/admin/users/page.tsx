@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { asc, eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
-import { requireCapability } from "@/lib/auth/authorize";
+import { can, requireCapability } from "@/lib/auth/authorize";
 import { db } from "@/lib/db";
 import { departments, grades, users } from "@/lib/db/schema";
 import { formatDate } from "@/lib/i18n/format";
 import { PageHeader } from "@/components/ui/page-header";
+import { SectionTabs } from "@/components/layout/section-tabs";
+import { sectionTabsFor } from "@/components/layout/nav-config";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { InviteUserDialog } from "@/components/users/invite-user-dialog";
 
 export default async function UsersPage({ searchParams }: { searchParams: Promise<{ inactive?: string }> }) {
-  await requireCapability("users.manage");
+  const user = await requireCapability("users.manage");
   const sp = await searchParams;
   const [rows, depts, grs, t, tr, tc] = await Promise.all([
     db
@@ -28,6 +30,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   const visible = rows.filter((r) => sp.inactive === "1" || (r.u.isActive && !r.u.deletedAt));
   return (
     <>
+      <SectionTabs tabs={sectionTabsFor("admin", (c) => can(user, c))} />
       <PageHeader
         title={t("title")}
         actions={

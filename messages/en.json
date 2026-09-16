@@ -31,7 +31,11 @@
     "search_group_invoice": "Invoices",
     "notifications": "Notifications",
     "skip_to_content": "Skip to content",
-    "main_navigation": "Main navigation"
+    "main_navigation": "Main navigation",
+    "crm": "Clients & Suppliers",
+    "finance": "Finance",
+    "admin": "Administration",
+    "section_navigation": "Section navigation"
   },
   "notifications": {
     "title": "Notifications",

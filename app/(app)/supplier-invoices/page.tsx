@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { contracts, projects, supplierInvoices, suppliers } from "@/lib/db/schema";
 import { formatDate, formatMoney, formatPct } from "@/lib/i18n/format";
 import { PageHeader } from "@/components/ui/page-header";
+import { SectionTabs } from "@/components/layout/section-tabs";
+import { sectionTabsFor } from "@/components/layout/nav-config";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { SupplierInvoiceDialog } from "@/components/supplier-invoices/supplier-invoice-dialog";
@@ -29,6 +31,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
   const tc = await getTranslations("common");
   return (
     <>
+      <SectionTabs tabs={sectionTabsFor("finance", (c) => can(user, c))} />
       <PageHeader title={t("title")} actions={can(user, "supplier_invoices.manage") ? <SupplierInvoiceDialog invoice={null} contracts={cons.map((c) => ({ id: c.id, label: `${c.label} – ${c.name} (${c.supplier})` }))} defaultContractId={sp.contract} /> : undefined} />
       <Table>
         <TableHeader>

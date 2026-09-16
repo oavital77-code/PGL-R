@@ -31,7 +31,11 @@
     "search_group_invoice": "חשבונות",
     "notifications": "התראות",
     "skip_to_content": "דלג לתוכן",
-    "main_navigation": "ניווט ראשי"
+    "main_navigation": "ניווט ראשי",
+    "crm": "לקוחות וספקים",
+    "finance": "כספים",
+    "admin": "ניהול",
+    "section_navigation": "ניווט משני"
   },
   "notifications": {
     "title": "התראות",

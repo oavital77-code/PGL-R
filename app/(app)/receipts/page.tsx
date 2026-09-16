@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
-import { requireCapability } from "@/lib/auth/authorize";
+import { can, requireCapability } from "@/lib/auth/authorize";
 import { db } from "@/lib/db";
 import { clients, invoices, receiptAllocations, receipts } from "@/lib/db/schema";
 import { formatDate, formatMoney } from "@/lib/i18n/format";
 import { PageHeader } from "@/components/ui/page-header";
+import { SectionTabs } from "@/components/layout/section-tabs";
+import { sectionTabsFor } from "@/components/layout/nav-config";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ReceiptDialog } from "@/components/receipts/receipt-dialog";
@@ -41,6 +43,7 @@ export default async function ReceiptsPage({ searchParams }: { searchParams: Pro
   }
   return (
     <>
+      <SectionTabs tabs={sectionTabsFor("finance", (c) => can(user, c))} />
       <PageHeader title={t("title")} actions={<ReceiptDialog receipt={null} clients={cls} />} />
       <div className="grid gap-5 xl:grid-cols-[1fr_420px]">
         <Table>

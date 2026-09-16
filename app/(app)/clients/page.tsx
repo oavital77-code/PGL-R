@@ -7,6 +7,8 @@ import { db } from "@/lib/db";
 import { clients, contracts, invoices } from "@/lib/db/schema";
 import { formatMoney, todayLocal } from "@/lib/i18n/format";
 import { PageHeader } from "@/components/ui/page-header";
+import { SectionTabs } from "@/components/layout/section-tabs";
+import { sectionTabsFor } from "@/components/layout/nav-config";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -33,6 +35,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
   ]);
   return (
     <>
+      <SectionTabs tabs={sectionTabsFor("crm", (c) => can(user, c))} />
       <PageHeader title={t("title")} actions={can(user, "clients.edit") ? <ClientDialog client={null} /> : undefined} />
       <form className="mb-4 flex flex-wrap items-center gap-2" method="get">
         <Input name="q" defaultValue={sp.q ?? ""} placeholder={tc("search")} className="max-w-xs" />

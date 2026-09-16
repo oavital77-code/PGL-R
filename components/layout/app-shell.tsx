@@ -1,24 +1,6 @@
 "use client";
 import { UserButton } from "@clerk/nextjs";
-import {
-  BarChart3,
-  Bell,
-  Clock,
-  FileInput,
-  FolderKanban,
-  History,
-  LayoutDashboard,
-  Menu,
-  Receipt,
-  Search,
-  Settings,
-  ShieldCheck,
-  Truck,
-  Upload,
-  Users,
-  Wallet,
-  X,
-} from "lucide-react";
+import { BarChart3, Bell, Clock, FolderKanban, LayoutDashboard, Menu, Receipt, Search, Settings, Users, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -31,15 +13,9 @@ const ICONS = {
   clock: Clock,
   folder: FolderKanban,
   users: Users,
-  truck: Truck,
   receipt: Receipt,
-  wallet: Wallet,
-  "file-input": FileInput,
   chart: BarChart3,
   settings: Settings,
-  shield: ShieldCheck,
-  history: History,
-  upload: Upload,
 } as const;
 
 export interface AppShellProps {
@@ -59,7 +35,7 @@ export function AppShell({ items, userName, roleLabel, unreadCount, companyName,
   const [open, setOpen] = React.useState(false);
   const [notifOpen, setNotifOpen] = React.useState(false);
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/") || (href === "/projects" && (pathname.startsWith("/contracts") || pathname.startsWith("/sub-contracts")));
+  const isActive = (it: NavItem) => (it.matches ?? [it.href]).some((m) => pathname === m || pathname.startsWith(m + "/"));
 
   const nav = (
     <nav className="flex flex-col gap-0.5 p-2">
@@ -72,7 +48,7 @@ export function AppShell({ items, userName, roleLabel, unreadCount, companyName,
             onClick={() => setOpen(false)}
             className={cn(
               "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-              isActive(it.href) ? "bg-white/15 text-white" : "text-brand-100 hover:bg-white/10 hover:text-white",
+              isActive(it) ? "bg-white/15 text-white" : "text-brand-100 hover:bg-white/10 hover:text-white",
             )}
           >
             <Icon className="h-4 w-4 shrink-0" />
@@ -155,7 +131,7 @@ export function AppShell({ items, userName, roleLabel, unreadCount, companyName,
             .map((it) => {
               const Icon = ICONS[it.icon];
               return (
-                <Link key={it.key} href={it.href} className={cn("flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px]", isActive(it.href) ? "text-primary" : "text-muted-foreground")}>
+                <Link key={it.key} href={it.href} className={cn("flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px]", isActive(it) ? "text-primary" : "text-muted-foreground")}>
                   <Icon className="h-5 w-5" />
                   {t(it.key)}
                 </Link>

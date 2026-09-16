@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { clients, contracts, invoices, projects } from "@/lib/db/schema";
 import { formatDate, formatMoney } from "@/lib/i18n/format";
 import { PageHeader } from "@/components/ui/page-header";
+import { SectionTabs } from "@/components/layout/section-tabs";
+import { sectionTabsFor } from "@/components/layout/nav-config";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,6 +43,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
   const statuses = ["draft", "pending_approval", "approved", "signed", "sent", "partially_paid", "paid", "cancelled"] as const;
   return (
     <>
+      <SectionTabs tabs={sectionTabsFor("finance", (c) => can(user, c))} />
       <PageHeader
         title={t("title")}
         actions={

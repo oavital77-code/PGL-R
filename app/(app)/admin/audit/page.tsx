@@ -1,18 +1,20 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
-import { requireCapability } from "@/lib/auth/authorize";
+import { can, requireCapability } from "@/lib/auth/authorize";
 import { auditTables } from "@/lib/audit/query";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { AuditTable } from "@/components/audit/audit-table";
 import { PageHeader } from "@/components/ui/page-header";
+import { SectionTabs } from "@/components/layout/section-tabs";
+import { sectionTabsFor } from "@/components/layout/nav-config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Field } from "@/components/ui/form-field";
 
 export default async function AuditPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
-  await requireCapability("audit.view");
+  const user = await requireCapability("audit.view");
   const sp = await searchParams;
   const [tables, people, t, tc] = await Promise.all([
     auditTables(),
@@ -24,6 +26,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
   const q = new URLSearchParams(Object.entries(sp).filter(([k, v]) => v && k !== "page") as [string, string][]);
   return (
     <>
+      <SectionTabs tabs={sectionTabsFor("admin", (c) => can(user, c))} />
       <PageHeader
         title={t("title")}
         actions={

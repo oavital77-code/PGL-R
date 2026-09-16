@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { AppShell } from "@/components/layout/app-shell";
 import { GlobalSearch } from "@/components/layout/global-search";
-import { NAV_ITEMS } from "@/components/layout/nav-config";
+import { navFor } from "@/components/layout/nav-config";
 import { NotificationsList } from "@/components/layout/notifications-list";
 import { can } from "@/lib/auth/authorize";
 import { getCurrentUser } from "@/lib/auth/current-user";
@@ -29,7 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const pathname = (await headers()).get("x-pathname") ?? "";
   if (!onboarding.completed && user.role === "admin" && pathname === "/dashboard") redirect("/settings/wizard");
 
-  const items = NAV_ITEMS.filter((i) => i.caps.length === 0 || i.caps.some((c) => can(user, c)));
+  const items = navFor((c) => can(user, c));
 
   return (
     <AppShell

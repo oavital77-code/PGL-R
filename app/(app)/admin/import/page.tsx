@@ -1,17 +1,19 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { requireCapability } from "@/lib/auth/authorize";
+import { can, requireCapability } from "@/lib/auth/authorize";
 import { db } from "@/lib/db";
 import { importBatches, users } from "@/lib/db/schema";
 import { IMPORT_ENTITIES } from "@/lib/import/spec";
 import { PageHeader } from "@/components/ui/page-header";
+import { SectionTabs } from "@/components/layout/section-tabs";
+import { sectionTabsFor } from "@/components/layout/nav-config";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImportUploadForm, BatchActions, DiffReportButton } from "@/components/import/import-client";
 
 export default async function ImportPage() {
-  await requireCapability("import.run");
+  const user = await requireCapability("import.run");
   const [batches, t, tc, f] = await Promise.all([
     db.select({ b: importBatches, runBy: sql<string | null>`${users.firstName} || ' ' || ${users.lastName}` }).from(importBatches).leftJoin(users, eq(users.id, importBatches.runBy)).orderBy(desc(importBatches.createdAt)).limit(50),
     getTranslations("import"),
@@ -20,6 +22,7 @@ export default async function ImportPage() {
   ]);
   return (
     <>
+      <SectionTabs tabs={sectionTabsFor("admin", (c) => can(user, c))} />
       <PageHeader title={t("title")} description={t("intro")} actions={<DiffReportButton />} />
       <div className="grid gap-5 lg:grid-cols-[380px_1fr]">
         <Card>

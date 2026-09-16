@@ -26,7 +26,7 @@ pnpm test:e2e             # Playwright (דורש APP_BASE_URL ו-E2E_* לפי te
 ## פריסה (Vercel + Supabase)
 המדריך המלא, שלב אחרי שלב: **[`docs/deploy.md`](docs/deploy.md)**. בקצרה:
 1. Supabase: פרויקט Postgres (fra1), הפעלת PITR, `DATABASE_URL` = pooler (6543), `DIRECT_URL` = ישיר (5432).
-2. Clerk: כיבוי הרשמה עצמית, הפעלת Invitations, MFA, Google OAuth (רק למשתמשים קיימים), webhook ל-`/api/webhooks/clerk` (user.created/updated/deleted).
+2. Clerk: כיבוי הרשמה עצמית, הפעלת Invitations, Google OAuth (רק למשתמשים קיימים), webhook ל-`/api/webhooks/clerk` (user.created/updated/deleted).
 3. Resend: דומיין מאומת, webhook ל-`/api/webhooks/resend`.
 4. Vercel: משתני הסביבה מ-`.env.example`; `vercel.json` מגדיר את ה-cron (זמני UTC). ענפים: `main` = production, `dev` = preview.
 5. הכנת הנתונים: `pnpm db:migrate && pnpm db:seed && pnpm storage:init` (ה-buckets הפרטיים: `contracts, invoices, supplier-invoices, general-docs, signatures, company, imports, report-exports`).

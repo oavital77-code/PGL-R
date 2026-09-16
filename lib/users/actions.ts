@@ -138,12 +138,12 @@ export async function updateUserAction(fd: FormData): Promise<ActionResult<{ id:
 
 export async function resendInvitationAction(userId: string): Promise<ActionResult<undefined>> {
   return runAction(async () => {
-    await requireCapability("users.manage");
+    const admin = await requireCapability("users.manage");
     const [u] = await db.select({ email: users.email, role: users.role, clerk: users.clerkUserId }).from(users).where(eq(users.id, userId));
     if (!u) throw new ValidationError("errors.not_found");
     if (u.clerk) throw new BusinessRuleError("users.already_linked");
     await sendClerkInvitation(u.email, u.role);
-    await db.update(users).set({ invitedAt: new Date() }).where(eq(users.id, userId));
+    await withUser({ userId: admin.id }, (tx) => tx.update(users).set({ invitedAt: new Date() }).where(eq(users.id, userId)));
     return undefined;
   });
 }

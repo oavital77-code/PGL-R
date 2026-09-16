@@ -1,5 +1,5 @@
 "use server";
-import { and, desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireCapability, requireUser } from "@/lib/auth/authorize";
@@ -84,10 +84,3 @@ export async function deleteDocumentAction(id: string): Promise<ActionResult<und
   });
 }
 
-export async function listDocuments(entityType: DocumentEntity, entityId: string) {
-  return db
-    .select()
-    .from(documents)
-    .where(and(eq(documents.entityType, entityType), eq(documents.entityId, entityId)))
-    .orderBy(desc(documents.createdAt));
-}

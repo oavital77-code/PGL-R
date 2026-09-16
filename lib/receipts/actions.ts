@@ -31,7 +31,7 @@ function rev(clientId?: string) {
 }
 
 /** Re-derive sent → partially_paid → paid from allocations (spec §11.3, §11.10). */
-export async function syncInvoicePaymentStatus(tx: Tx, invoiceId: string) {
+async function syncInvoicePaymentStatus(tx: Tx, invoiceId: string) {
   const [inv] = await tx.select({ status: invoices.status, total: invoices.total, contractId: invoices.contractId }).from(invoices).where(eq(invoices.id, invoiceId));
   if (!inv) return;
   if (!["sent", "partially_paid", "paid"].includes(inv.status)) return;

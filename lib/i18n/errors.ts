@@ -10,6 +10,11 @@ export function onIntlError(error: IntlError): void {
     console.warn(`[i18n] missing message: ${error.message}`);
     return;
   }
+  if (error.code === IntlErrorCode.ENVIRONMENT_FALLBACK) {
+    // a static render without a request locale fell back to the default – expected, not a failure
+    console.warn(`[i18n] ${error.message}`);
+    return;
+  }
   console.error(`[i18n] ${error.code}: ${error.message}`);
 }
 

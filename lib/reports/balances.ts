@@ -133,26 +133,29 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
   const today = todayLocal();
 
   // A contract-level filter must not drag every project of the company into the report:
-  // resolve the projects that own the requested contracts / sub-contracts first.
-  let projectFilterIds = filter.projectIds;
-  if (!projectFilterIds && (filter.contractIds || filter.subContractIds)) {
-    const owners = await db
-      .select({ projectId: contracts.projectId })
-      .from(contracts)
-      .leftJoin(subContracts, eq(subContracts.contractId, contracts.id))
-      .where(
-        or(
-          filter.contractIds ? inArray(contracts.id, filter.contractIds) : undefined,
-          filter.subContractIds ? inArray(subContracts.id, filter.subContractIds) : undefined,
-        ),
-      );
-    projectFilterIds = [...new Set(owners.map((o) => o.projectId))];
-    if (projectFilterIds.length === 0) return { projects: [], months: [] };
-  }
+  // restrict to the projects that own the requested contracts / sub-contracts, as a subquery
+  // (no array parameter – those have misbehaved through the transaction pooler).
+  const ownerFilter =
+    !filter.projectIds && (filter.contractIds || filter.subContractIds)
+      ? inArray(
+          projects.id,
+          db
+            .select({ projectId: contracts.projectId })
+            .from(contracts)
+            .leftJoin(subContracts, eq(subContracts.contractId, contracts.id))
+            .where(
+              or(
+                filter.contractIds ? inArray(contracts.id, filter.contractIds) : undefined,
+                filter.subContractIds ? inArray(subContracts.id, filter.subContractIds) : undefined,
+              ),
+            ),
+        )
+      : undefined;
 
   const projWhere = and(
     isNull(projects.deletedAt),
-    projectFilterIds ? inArray(projects.id, projectFilterIds) : undefined,
+    filter.projectIds ? inArray(projects.id, filter.projectIds) : undefined,
+    ownerFilter,
     filter.clientIds ? inArray(projects.clientId, filter.clientIds) : undefined,
   );
   const projRows = await db

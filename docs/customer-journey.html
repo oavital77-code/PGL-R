@@ -1,0 +1,408 @@
+<title>מסע הלקוח ב-PGL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&display=swap">
+<style>
+  :root {
+    --ground: #EBEFF5; --surface: #FFFFFF; --surface-2: #F5F8FC;
+    --ink: #14223C; --ink-2: #44556E; --muted: #78879D;
+    --rule: #D6DEEA; --rule-soft: #E6ECF4;
+    --accent: #1B5FA6; --accent-soft: #E2EDF8;
+    --warn: #8A5200; --warn-soft: #FAEEDA; --warn-rule: #E8CFA1;
+    --good: #1E6B3A; --good-soft: #E3F2E8;
+    --shadow: 0 1px 2px rgba(20,34,60,.06), 0 8px 24px rgba(20,34,60,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0D1421; --surface: #151E2E; --surface-2: #1A2434;
+      --ink: #E7EDF6; --ink-2: #AEBBCD; --muted: #7F8EA4;
+      --rule: #273349; --rule-soft: #1E2839;
+      --accent: #7BB0E0; --accent-soft: #17293D;
+      --warn: #E3B26A; --warn-soft: #2A2217; --warn-rule: #4A3A20;
+      --good: #7CC79A; --good-soft: #14291C;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0D1421; --surface: #151E2E; --surface-2: #1A2434;
+    --ink: #E7EDF6; --ink-2: #AEBBCD; --muted: #7F8EA4;
+    --rule: #273349; --rule-soft: #1E2839;
+    --accent: #7BB0E0; --accent-soft: #17293D;
+    --warn: #E3B26A; --warn-soft: #2A2217; --warn-rule: #4A3A20;
+    --good: #7CC79A; --good-soft: #14291C;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  }
+  * { box-sizing: border-box; }
+  html { direction: rtl; }
+  body {
+    margin: 0; padding-inline: 20px; padding-block: 0 72px;
+    background: var(--ground); color: var(--ink);
+    font-family: "Assistant", "Segoe UI", system-ui, sans-serif;
+    font-size: 16.5px; line-height: 1.65; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin-inline: auto; }
+  .masthead { padding-block: 56px 32px; border-bottom: 2px solid var(--ink); display: flex; flex-wrap: wrap; align-items: flex-end; gap: 24px 40px; }
+  .masthead h1 { font-family: "Frank Ruhl Libre", Georgia, serif; font-weight: 700; font-size: clamp(2rem, 1.3rem + 2.6vw, 3.1rem); line-height: 1.12; margin: 0 0 10px; text-wrap: balance; }
+  .masthead p { margin: 0; color: var(--ink-2); max-width: 48ch; }
+  .masthead .lead-col { flex: 1 1 380px; }
+  .roles { display: flex; gap: 10px; flex-wrap: wrap; }
+  .role { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--rule); background: var(--surface); border-radius: 999px; font-size: .9rem; }
+  .role i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+  .r-admin { background: var(--accent); } .r-manager { background: #C98A1B; } .r-employee { background: #5A9A6E; }
+
+  code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .88em; background: var(--surface-2); border: 1px solid var(--rule-soft); border-radius: 2px; padding: 1px 5px; direction: ltr; display: inline-block; unicode-bidi: embed; }
+
+  .cols { display: grid; grid-template-columns: 232px 1fr; gap: 44px; align-items: start; margin-top: 36px; }
+  nav.index { position: sticky; top: 24px; }
+  nav.index h2 { font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; font-weight: 700; }
+  nav.index ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+  nav.index a { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: baseline; padding: 6px 8px; color: var(--ink-2); text-decoration: none; border-radius: 2px; font-size: .93rem; }
+  nav.index a:hover, nav.index a:focus-visible { background: var(--accent-soft); color: var(--ink); }
+  nav.index .n { color: var(--muted); font-variant-numeric: tabular-nums; font-size: .82rem; }
+
+  main { display: grid; gap: 22px; min-width: 0; }
+  section.journey { background: var(--surface); border: 1px solid var(--rule); border-radius: 3px; padding: 28px 30px 26px; scroll-margin-top: 20px; }
+  .jhead { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .jhead .letter { font-family: "Frank Ruhl Libre", Georgia, serif; font-size: 1.6rem; color: var(--accent); }
+  .jhead h2 { font-family: "Frank Ruhl Libre", Georgia, serif; font-size: 1.5rem; margin: 0; flex: 1 1 auto; text-wrap: balance; }
+  .jhead .meta { font-size: .85rem; color: var(--muted); white-space: nowrap; }
+  .lede { margin: 12px 0 0; color: var(--ink-2); max-width: 70ch; }
+  .lede strong { color: var(--ink); }
+
+  /* stations */
+  ol.stations { list-style: none; margin: 24px 0 0; padding: 0; position: relative; }
+  ol.stations::before { content: ""; position: absolute; inset-block: 14px 14px; inset-inline-start: 17px; width: 2px; background: var(--rule); }
+  ol.stations li { position: relative; padding-inline-start: 54px; padding-block: 10px 14px; }
+  ol.stations li + li { border-top: 1px solid var(--rule-soft); }
+  ol.stations .dot { position: absolute; inset-inline-start: 6px; top: 12px; width: 24px; height: 24px; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent); color: var(--accent); font-size: .78rem; font-weight: 700; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
+  .st-title { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .st-title h3 { margin: 0; font-size: 1.05rem; font-weight: 700; }
+  .where { font-size: .82rem; color: var(--muted); }
+  .where b { color: var(--ink-2); font-weight: 600; }
+  .who { display: inline-flex; align-items: center; gap: 6px; font-size: .74rem; letter-spacing: .04em; color: var(--ink-2); padding: 2px 8px; border: 1px solid var(--rule); border-radius: 999px; }
+  .who i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .st-body { margin: 6px 0 0; color: var(--ink-2); max-width: 66ch; }
+  .st-body ul { margin: 6px 0 0; padding-inline-start: 18px; display: grid; gap: 3px; }
+  .st-body strong { color: var(--ink); }
+  .callout { margin-top: 10px; padding: 10px 14px; border-radius: 3px; font-size: .93rem; max-width: 66ch; }
+  .callout.warn { background: var(--warn-soft); border: 1px solid var(--warn-rule); }
+  .callout.warn b { color: var(--warn); }
+  .callout.good { background: var(--good-soft); border: 1px solid transparent; }
+  .callout.good b { color: var(--good); }
+
+  /* status chain */
+  .chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; margin-top: 14px; }
+  .chain span { padding: 4px 11px; border: 1px solid var(--rule); border-radius: 999px; font-size: .84rem; background: var(--surface-2); white-space: nowrap; }
+  .chain em { color: var(--muted); font-style: normal; font-size: .9rem; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 16px; }
+  .card { border: 1px solid var(--rule); border-radius: 3px; padding: 14px 16px; background: var(--surface-2); }
+  .card h4 { margin: 0 0 6px; font-size: .98rem; }
+  .card p, .card ul { margin: 0; color: var(--ink-2); font-size: .93rem; }
+  .card ul { padding-inline-start: 18px; display: grid; gap: 3px; }
+
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (max-width: 860px) {
+    .cols { grid-template-columns: 1fr; gap: 24px; }
+    nav.index { position: static; }
+    nav.index ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+    section.journey { padding: 22px 18px; }
+    ol.stations li { padding-inline-start: 46px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="lead-col">
+      <h1>מסע הלקוח ב-PGL</h1>
+      <p>מהרגע שלקוח חדש נכנס לדלת ועד שהכסף בבנק: את מי מקימים, באיזה סדר, מי עושה מה, ומה קורה בדרך.</p>
+    </div>
+    <div class="roles" aria-label="תפקידים">
+      <span class="role"><i class="r-admin"></i>אדמין</span>
+      <span class="role"><i class="r-manager"></i>מנהל</span>
+      <span class="role"><i class="r-employee"></i>עובד</span>
+    </div>
+  </header>
+
+  <div class="cols">
+    <nav class="index" aria-label="פרקים">
+      <h2>המסעות</h2>
+      <ol>
+        <li><a href="#a"><span class="n">א</span><span>לקוח חדש, פרויקט חדש</span></a></li>
+        <li><a href="#b"><span class="n">ב</span><span>פרויקט חדש ללקוח קיים</span></a></li>
+        <li><a href="#c"><span class="n">ג</span><span>דיווח שעות</span></a></li>
+        <li><a href="#d"><span class="n">ד</span><span>מהחשבון ועד התקבול</span></a></li>
+        <li><a href="#e"><span class="n">ה</span><span>הפקת דוחות</span></a></li>
+        <li><a href="#f"><span class="n">ו</span><span>מי עושה מה</span></a></li>
+      </ol>
+    </nav>
+
+    <main>
+
+      <!-- A -->
+      <section class="journey" id="a">
+        <div class="jhead"><span class="letter">א</span><h2>לקוח חדש עם פרויקט חדש</h2><span class="meta">7 תחנות · כ־20 דקות</span></div>
+        <p class="lede">הסדר חשוב, כי כל ישות נשענת על הקודמת: <strong>לקוח ← פרויקט ← חוזה ← תת-חוזה ← צוות</strong>. בלי החוליה האחרונה העובדים לא יוכלו לדווח שעות על הפרויקט.</p>
+        <ol class="stations">
+          <li>
+            <span class="dot">1</span>
+            <div class="st-title"><h3>פותחים כרטיס לקוח</h3><span class="who"><i class="r-admin"></i>אדמין / מנהל</span></div>
+            <div class="where">איפה: <b>לקוחות וספקים ← לקוחות ← לקוח חדש</b></div>
+            <div class="st-body">
+              ממלאים שם, ח.פ, סוג (חברה / רשות / פרטי), כתובת ואתר. שלושה שדות קובעים איך החשבונות ייראו בהמשך:
+              <ul>
+                <li><strong>תנאי תשלום</strong> בימים. ריק = ברירת המחדל מההגדרות.</li>
+                <li><strong>הצמדה למדד</strong> כברירת מחדל לחוזים של הלקוח הזה.</li>
+                <li><strong>ניכוי מס במקור</strong> באחוזים ותוקף האישור. משפיע על "תקבול צפוי" בכל חשבון.</li>
+              </ul>
+              המערכת מזהירה על ח.פ שאינו 9 ספרות ועל לקוח בשם זהה, אך לא חוסמת.
+            </div>
+          </li>
+          <li>
+            <span class="dot">2</span>
+            <div class="st-title"><h3>מוסיפים אנשי קשר</h3><span class="who"><i class="r-admin"></i>אדמין / מנהל</span></div>
+            <div class="where">איפה: <b>כרטיס הלקוח ← לשונית אנשי קשר</b></div>
+            <div class="st-body">שם, תפקיד, מייל וטלפון. מסמנים <strong>"נמען לחשבונות"</strong> לאיש הקשר שמקבל את חשבונות העסקה, ו"ראשי" לאיש הקשר העיקרי.</div>
+            <div class="callout warn"><b>בלי נמען לחשבונות</b> אי אפשר לשלוח חשבון במייל מהמערכת. זה השדה שהכי הרבה שוכחים.</div>
+          </li>
+          <li>
+            <span class="dot">3</span>
+            <div class="st-title"><h3>פותחים פרויקט</h3><span class="who"><i class="r-admin"></i>אדמין / מנהל</span></div>
+            <div class="where">איפה: <b>פרויקטים ← פרויקט חדש</b></div>
+            <div class="st-body">
+              <ul>
+                <li><strong>מס' עבודה</strong>: מוקלד ידנית או מוקצה אוטומטית, לפי מה שנקבע בהגדרות המספור. חייב להיות ייחודי.</li>
+                <li><strong>שם הפרויקט</strong>, <strong>לקוח</strong>, ו<strong>לקוח משלם</strong> אם שונה מהלקוח (למשל חברה-בת שמשלמת).</li>
+                <li><strong>מנהל פרויקט</strong> ו<strong>מחלקה</strong>. המחלקה היא מרכז הרווח בדוחות.</li>
+                <li>תאריך התחלה ותאריך יעד. הסטטוס מחושב אוטומטית מהחוזים, אלא אם מסמנים "קביעת סטטוס ידנית".</li>
+              </ul>
+            </div>
+          </li>
+          <li>
+            <span class="dot">4</span>
+            <div class="st-title"><h3>פותחים חוזה לקוח</h3><span class="who"><i class="r-admin"></i>אדמין / מנהל</span></div>
+            <div class="where">איפה: <b>דף הפרויקט ← חוזה לקוח חדש</b></div>
+            <div class="st-body">
+              שם החוזה, מס' הזמנה מהלקוח, סוג חוזה, ותאריך חתימה. <strong>ללא תאריך חתימה החוזה הוא טיוטה; עם תאריך הוא בעבודה.</strong>
+              <ul>
+                <li><strong>עכבון</strong> באחוזים, אם הלקוח מעכב חלק מכל תשלום עד סיום.</li>
+                <li><strong>הצמדה למדד</strong> מוצעת מכרטיס הלקוח, עם חודש בסיס (ברירת מחדל: חודש החתימה) ורצפת מדד.</li>
+                <li><strong>"משתתף בדיווח שעות"</strong>: האם עובדים מדווחים שעות על החוזה הזה.</li>
+                <li>הבחירה המרכזית: <strong>חוזה עם תתי-חוזים</strong> (כמה שלבים או שירותים נפרדים, כל אחד עם תמחור משלו) או <strong>חוזה יחיד</strong>, ואז מגדירים את התמחור ואבני הדרך כבר כאן.</li>
+              </ul>
+            </div>
+          </li>
+          <li>
+            <span class="dot">5</span>
+            <div class="st-title"><h3>מגדירים תמחור ואבני דרך</h3><span class="who"><i class="r-admin"></i>אדמין / מנהל</span></div>
+            <div class="where">איפה: <b>דף החוזה ← לשונית תמחור ואבני דרך</b>, או דף תת-החוזה</div>
+            <div class="st-body">
+              בוחרים <strong>שיטת תמחור</strong> לכל תת-חוזה:
+              <ul>
+                <li><strong>פיקס פרייס</strong>: מחיר בסיס, הנחה באחוזים, ורשימת אבני דרך עם אחוז לכל אחת. אפשר להתחיל מתבנית מההגדרות. הסכום חייב להגיע ל-100%.</li>
+                <li><strong>לפי שעות</strong>: לפי כרטיס התעריפים (דרגה) או תעריף אחיד, עם תקרת שעות או סכום.</li>
+                <li><strong>ריטיינר</strong>: סכום חודשי, תאריכי התחלה וסיום, יום חיוב. החשבונות נוצרים אוטומטית.</li>
+                <li><strong>% מעלות פרויקט</strong>: אחוז שכר טרחה מאומדן עלות שמתעדכן לאורך הדרך.</li>
+                <li><strong>לפי יחידות</strong>: סוג יחידה, מחיר ליחידה, כמות מוסכמת.</li>
+              </ul>
+            </div>
+            <div class="callout good"><b>סכום החוזה</b> מחושב מתתי-החוזים. "תקציב מאושר" ממלאים רק אם הוא שונה מהסכום המחושב.</div>
+          </li>
+          <li>
+            <span class="dot">6</span>
+            <div class="st-title"><h3>מקצים צוות</h3><span class="who"><i class="r-manager"></i>מנהל</span></div>
+            <div class="where">איפה: <b>דף תת-החוזה ← לשונית צוות</b>, או דף הפרויקט ← צוות</div>
+            <div class="st-body">בוחרים את העובדים שיעבדו על תת-החוזה. מרגע ההקצאה תת-החוזה מופיע להם בכרטיס השעות. הסרת עובד לא מוחקת דיווחים קיימים.</div>
+            <div class="callout warn"><b>עובד שלא הוקצה</b> רואה בכרטיס השעות "לא הוקצו לך תתי-חוזים לדיווח". זו הסיבה מספר אחת לפניות "אני לא מצליח לדווח".</div>
+          </li>
+          <li>
+            <span class="dot">7</span>
+            <div class="st-title"><h3>מעלים את החוזה החתום ונועלים</h3><span class="who"><i class="r-admin"></i>אדמין / מנהל</span></div>
+            <div class="where">איפה: <b>דף החוזה ← לשונית מסמכים</b>, ואז כפתור <b>"חוזה חתום (נעל)"</b></div>
+            <div class="st-body">מעלים את ה-PDF החתום, סוג המסמך נבחר אוטומטית. הנעילה מקפיאה את התמחור ואבני הדרך. אבן דרך שכבר חויבה בחשבון מוגנת בכל מקרה. פתיחת נעילה דורשת סיבה ונרשמת ביומן השינויים.</div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- B -->
+      <section class="journey" id="b">
+        <div class="jhead"><span class="letter">ב</span><h2>פרויקט חדש ללקוח קיים</h2><span class="meta">אותו מסלול, בלי התחנות 1–2</span></div>
+        <p class="lede">מדלגים על פתיחת הלקוח ועוברים ישר לפרויקט. שני דברים שווה לבדוק לפני, ודרך קיצור אחת.</p>
+        <div class="grid2">
+          <div class="card">
+            <h4>לבדוק בכרטיס הלקוח</h4>
+            <ul>
+              <li>תנאי התשלום וההצמדה עדיין נכונים? הם יורשו לחוזה החדש.</li>
+              <li>אישור ניכוי במקור בתוקף? תאריך פג מוצג באדום.</li>
+              <li>איש הקשר שמקבל חשבונות עדיין עובד שם?</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>קיצור: שכפול פרויקט</h4>
+            <p>בדף של פרויקט דומה לוחצים <strong>שכפול</strong>. נוצר פרויקט חדש עם אותם חוזים, תתי-חוזים, תמחור ואבני דרך, בשם "(עותק)", ללא שעות וללא חשבונות. משנים מס' עבודה, שם ותאריכים, וממשיכים מתחנה 6 (צוות).</p>
+          </div>
+          <div class="card">
+            <h4>איפה רואים הכול יחד</h4>
+            <p>בכרטיס הלקוח, לשונית <strong>פרויקטים וחוזים</strong>: כל הפרויקטים של הלקוח עם סכום, הוגש, שולם ויתרה. לשונית <strong>גיול חובות</strong> מראה מה באיחור.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- C -->
+      <section class="journey" id="c">
+        <div class="jhead"><span class="letter">ג</span><h2>איך עובדים מדווחים שעות</h2><span class="meta">כל יום, 2 דקות</span></div>
+        <p class="lede">כרטיס השעות הוא המסך היחיד שעובד רגיל צריך. הוא נמצא ב<strong>דיווח שעות</strong> בתפריט, וגם בסרגל התחתון בטלפון.</p>
+        <ol class="stations">
+          <li>
+            <span class="dot">1</span>
+            <div class="st-title"><h3>בוחרים תצוגה</h3><span class="who"><i class="r-employee"></i>עובד</span></div>
+            <div class="st-body"><strong>יומי</strong> לרשימה של יום אחד, <strong>שבועי</strong> לטבלה של תתי-חוזים מול ימים (הדרך המהירה ביותר), <strong>חודשי</strong> ללוח שנה עם סך שעות לכל יום. פס התקן מראה פער מול 8.5 שעות ליום, או מה שנקבע בהגדרות.</div>
+          </li>
+          <li>
+            <span class="dot">2</span>
+            <div class="st-title"><h3>מוסיפים דיווח</h3><span class="who"><i class="r-employee"></i>עובד</span></div>
+            <div class="where">כפתור <b>הוסף דיווח</b>, או לחיצה על תא בטבלה השבועית</div>
+            <div class="st-body">
+              <ul>
+                <li><strong>תת-חוזה</strong>: מחפשים לפי מס' עבודה, שם פרויקט או שם תת-חוזה. מופיעים רק תתי-חוזים שהעובד הוקצה אליהם.</li>
+                <li><strong>זמן</strong>: התחלה וסיום, או משך בפורמט <code>HH:MM</code>.</li>
+                <li><strong>תיאור</strong>: חובה, לפחות 3 תווים. הוא מופיע בנספח השעות של החשבון ללקוח, אז כותבים משהו שלקוח יכול לקרוא.</li>
+              </ul>
+              "שמור והוסף עוד" חוסך לחיצות כשיש כמה דיווחים ביום.
+            </div>
+          </li>
+          <li>
+            <span class="dot">3</span>
+            <div class="st-title"><h3>שבוע שחוזר על עצמו</h3><span class="who"><i class="r-employee"></i>עובד</span></div>
+            <div class="where">כפתור <b>העתק משבוע קודם</b></div>
+            <div class="st-body">מעתיק את תתי-החוזים והמשכים מהשבוע שעבר. התיאורים לא מועתקים בכוונה, כדי שכל שורה תתאר את מה שנעשה השבוע.</div>
+          </li>
+          <li>
+            <span class="dot">4</span>
+            <div class="st-title"><h3>מה המערכת לא מאפשרת</h3><span class="who"><i class="r-employee"></i>עובד</span></div>
+            <div class="st-body">
+              <ul>
+                <li>דיווח על <strong>תאריך עתידי</strong> (אלא אם הותר בהגדרות).</li>
+                <li>יותר מהמקסימום היומי, ואזהרה כשעוברים את התקן.</li>
+                <li>עריכת דיווח ש<strong>כבר חויב בחשבון</strong>. הוא מסומן "חויב בחשבון" והופך לקריאה בלבד.</li>
+                <li>דיווח ב<strong>תקופה נעולה</strong>: חודש נסגר בסוף החודש העוקב (או לפי ההגדרה). אז מבקשים מאדמין "פתח חודש" עם סיבה ולכמה ימים.</li>
+              </ul>
+            </div>
+          </li>
+          <li>
+            <span class="dot">5</span>
+            <div class="st-title"><h3>מנהלים ותזכורות</h3><span class="who"><i class="r-manager"></i>מנהל</span></div>
+            <div class="st-body">מנהל יכול לצפות ולדווח בשם עובדי המחלקה שלו (בחירת "כרטיס שעות של…"). העובד מקבל התראה שדיווחו בשמו. אחרי מספר ימים ללא דיווח נשלחת תזכורת אוטומטית לעובד ועותק למנהל, והדשבורד מראה "עובדים בפיגור דיווח" ו"ימים חסרים".</div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- D -->
+      <section class="journey" id="d">
+        <div class="jhead"><span class="letter">ד</span><h2>מהחשבון ועד התקבול</h2><span class="meta">אחת לחודש, לכל חוזה</span></div>
+        <p class="lede">חשבון עסקה נבנה באשף של ארבעה שלבים, עובר שרשרת אישורים, נשלח ללקוח, וכשהכסף מגיע מקצים אותו לחשבון. הכול תחת <strong>כספים</strong>.</p>
+        <ol class="stations">
+          <li>
+            <span class="dot">1</span>
+            <div class="st-title"><h3>אשף חשבון חדש</h3><span class="who"><i class="r-admin"></i>אדמין / מנהל</span></div>
+            <div class="where">איפה: <b>כספים ← חשבונות ← חשבון חדש</b></div>
+            <div class="st-body">
+              <ul>
+                <li><strong>בחירת חוזה</strong>: מחפשים לפי מס' עבודה, פרויקט או לקוח. מוצגים רק חוזי לקוח פעילים עם יתרה להגשה.</li>
+                <li><strong>היקף ותקופה</strong>: אילו תתי-חוזים לכלול, תאריך החשבון, ותקופה (לשעות, ריטיינר ויחידות).</li>
+                <li><strong>שורות</strong>: לכל אבן דרך מזינים "% בחשבון זה", והמערכת מראה מצטבר קודם, מצטבר חדש וסכום. שורות שעות נמשכות מהדיווחים שלא חויבו. אפשר להוסיף תוספת או התאמה.</li>
+                <li><strong>סיכום</strong>: סכום מצטבר, תקבולים בבסיס, הפרשי הצמדה לפי חודש המדד, עכבון, מע"מ, סה"כ לתשלום, ותקבול צפוי אחרי ניכוי במקור.</li>
+              </ul>
+            </div>
+            <div class="callout warn"><b>חסר ערך מדד?</b> חשבון צמוד לא יאושר עד שיש מדד לחודש הנדרש. הוא נמשך אוטומטית מהלמ"ס, ואפשר להזין ידנית בהגדרות ההצמדה.</div>
+          </li>
+          <li>
+            <span class="dot">2</span>
+            <div class="st-title"><h3>שרשרת הסטטוסים</h3><span class="who"><i class="r-admin"></i>אדמין</span></div>
+            <div class="chain">
+              <span>טיוטה</span><em>←</em><span>שלח לאישור</span><em>←</em><span>אשר</span><em>←</em><span>חתום</span><em>←</em><span>שלח ללקוח</span><em>←</em><span>שולם חלקית</span><em>←</em><span>שולם</span>
+            </div>
+            <div class="st-body">
+              <ul>
+                <li><strong>טיוטה</strong> ניתנת לעריכה חופשית. דיווחי השעות שנכללו בה מסומנים כתפוסים כבר עכשיו, כדי שלא יחויבו פעמיים.</li>
+                <li><strong>אישור</strong>: אם נקבע "אישור כפול" בהגדרות, המאשר חייב להיות שונה מיוצר החשבון.</li>
+                <li><strong>חתימה</strong>: כאן החשבון מקבל את <strong>מספרו הסופי</strong> ונוצר ה-PDF עם החתימה. לחותם חייבת להיות תמונת חתימה בהגדרות.</li>
+                <li><strong>שליחה</strong>: מייל לאנשי הקשר המסומנים "נמען לחשבונות", עם ה-PDF מצורף, ועותק לכתובות שנקבעו בהגדרות הדואר.</li>
+              </ul>
+              טעות אחרי חתימה לא מתקנים בעריכה אלא ב<strong>זיכוי</strong> (בחירת שורות או אחוז) או ב<strong>ביטול</strong> עם סיבה. תצוגה מקדימה של ה-PDF זמינה בכל שלב, עם סימן מים "טיוטה" לפני החתימה.
+            </div>
+          </li>
+          <li>
+            <span class="dot">3</span>
+            <div class="st-title"><h3>רישום תקבול והקצאה</h3><span class="who"><i class="r-admin"></i>אדמין</span></div>
+            <div class="where">איפה: <b>כספים ← תקבולים ← תקבול חדש</b></div>
+            <div class="st-body">לקוח, תאריך, סכום, אמצעי (העברה / צ'ק / כרטיס / מזומן), אסמכתא, וקובץ אם יש. אחר כך <strong>הקצאה</strong> לחשבונות הפתוחים של הלקוח: ידנית, או "הקצה אוטומטית מהישן לחדש". יתרה שלא הוקצתה נשארת כזכות לקוח לחשבון הבא. סטטוס החשבון מתעדכן לבד לשולם חלקית או שולם.</div>
+          </li>
+          <li>
+            <span class="dot">4</span>
+            <div class="st-title"><h3>מעקב</h3><span class="who"><i class="r-admin"></i>אדמין / מנהל</span></div>
+            <div class="st-body">הדשבורד מראה חשבונות פתוחים, חשבונות באיחור, הוגש החודש והשנה, ותקבולים החודש. חשבון שעבר את ספי הגיול (30, 60, 90 יום) מייצר התראה, ותזכורת תשלום נשלחת ללקוח לפי התבנית בהגדרות הדואר. הייצוא להנהלת חשבונות נמצא בראש מסך החשבונות.</div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- E -->
+      <section class="journey" id="e">
+        <div class="jhead"><span class="letter">ה</span><h2>הפקת דוחות</h2><span class="meta">מסך אחד, 24 דוחות</span></div>
+        <p class="lede">כל הדוחות נבנים באותו מסך, <strong>דוחות</strong>: בוחרים דוח, מסננים, לוחצים "הפק". מה שנראה על המסך הוא מה שיוצא לאקסל ול-PDF.</p>
+        <ol class="stations">
+          <li>
+            <span class="dot">1</span>
+            <div class="st-title"><h3>בוחרים דוח וטווח</h3><span class="who"><i class="r-manager"></i>מנהל / אדמין</span></div>
+            <div class="st-body">הדוחות מקובצים: <strong>שעות</strong> (חודשי לפי עובד, לפי פרויקט, מטריצת עובדים-פרויקטים, דיווחים חסרים), <strong>כספים</strong> (יתרות חוזים, חשבונות, גיול חובות, תקבולים, רווחיות לפי לקוח / פרויקט / תת-חוזה, תכנון מול ביצוע), <strong>ספקים</strong>, <strong>שכר</strong> ו<strong>מערכת</strong>. קיצורי טווח: חודש, חודש קודם, רבעון, שנה.</div>
+          </li>
+          <li>
+            <span class="dot">2</span>
+            <div class="st-title"><h3>מסננים ומעצבים</h3><span class="who"><i class="r-manager"></i>מנהל / אדמין</span></div>
+            <div class="st-body">
+              <ul>
+                <li>סינון לפי לקוחות, פרויקטים, תתי-חוזים, מחלקות, עובדים, מנהלי פרויקט, סטטוס ושיטת תמחור.</li>
+                <li><strong>קיבוץ לפי</strong> לקוח או מחלקה, שורות סיכום, והצגת חודשים כעמודות.</li>
+                <li><strong>בחירת עמודות</strong>, גרף (עמודות / קווים / עוגה), ו<strong>השוואה לתקופה קודמת</strong> באותו אורך.</li>
+                <li>ברווחיות: הכנסה "לפי הוגש" או "לפי אבני דרך שהושלמו". שתי תשובות לגיטימיות לאותה שאלה, צריך להחליט איזו נהוגה בחברה.</li>
+              </ul>
+            </div>
+          </li>
+          <li>
+            <span class="dot">3</span>
+            <div class="st-title"><h3>מייצאים, שומרים, מתזמנים</h3><span class="who"><i class="r-manager"></i>מנהל / אדמין</span></div>
+            <div class="st-body">ייצוא לאקסל, PDF או הדפסה. הגדרה שחוזרת על עצמה נשמרת <strong>כתבנית</strong>, אישית או משותפת לכולם. תבנית אפשר <strong>לתזמן</strong>: יומי, שבועי או חודשי, לרשימת נמענים במייל.</div>
+          </li>
+        </ol>
+        <div class="grid2">
+          <div class="card"><h4>דוח יתרות חוזים</h4><p>הדוח המרכזי לניהול: לכל לקוח, פרויקט, חוזה ותת-חוזה, סכום, הוגש, שולם, פתוח ויתרה להגשה, עם הרחבה עד רמת אבן הדרך. אפשר לכתוב הערת סטטוס ישירות מהדוח.</p></div>
+          <div class="card"><h4>דיווחים חסרים</h4><p>מי לא דיווח ומתי דיווח לאחרונה. הדוח שמנהלת המשרד מריצה בתחילת כל חודש לפני סגירת התקופה.</p></div>
+          <div class="card"><h4>רווחיות לפי פרויקט</h4><p>הכנסה מול עלות שעות (לפי עלות שעתית של כל עובד) ועלות ספקים. בלי עלות שעתית לעובדים הדוח מראה רווח מנופח.</p></div>
+        </div>
+      </section>
+
+      <!-- F -->
+      <section class="journey" id="f">
+        <div class="jhead"><span class="letter">ו</span><h2>מי עושה מה</h2></div>
+        <p class="lede">שלוש שכבות. ההרשאות המדויקות נקבעות בהגדרות, אלה ברירות המחדל.</p>
+        <div class="grid2">
+          <div class="card">
+            <h4><i class="r-employee" style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:6px"></i>עובד</h4>
+            <ul><li>מדווח שעות על תתי-חוזים שהוקצה אליהם</li><li>רואה את הדשבורד האישי: שעות השבוע, החודש, ימים חסרים</li><li>לא רואה כסף, חוזים או עובדים אחרים</li></ul>
+          </div>
+          <div class="card">
+            <h4><i class="r-manager" style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:6px"></i>מנהל</h4>
+            <ul><li>כל מה שעובד עושה, וגם בשם עובדי המחלקה</li><li>פותח לקוחות, פרויקטים וחוזים, מקצה צוות</li><li>מפיק דוחות שעות ודוחות כספיים</li><li>רואה יתרות ורווחיות של המחלקה</li></ul>
+          </div>
+          <div class="card">
+            <h4><i class="r-admin" style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:6px"></i>אדמין</h4>
+            <ul><li>הכול, בכל המחלקות</li><li>מאשר, חותם ושולח חשבונות; רושם תקבולים</li><li>מנהל משתמשים, עלויות שעתיות והגדרות</li><li>פותח תקופות נעולות ומאשר חשבוניות ספק</li></ul>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>

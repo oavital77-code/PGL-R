@@ -1,4 +1,5 @@
 import { getRequestConfig } from "next-intl/server";
+import { intlMessageFallback, onIntlError } from "./errors";
 import { cookies } from "next/headers";
 import { DEFAULT_LOCALE, LOCALES, TIME_ZONE, type Locale } from "./config";
 
@@ -11,5 +12,5 @@ export default getRequestConfig(async () => {
   const raw = store.get("pgl_locale")?.value;
   const locale: Locale = (LOCALES as readonly string[]).includes(raw ?? "") ? (raw as Locale) : DEFAULT_LOCALE;
   const messages = (await import(`../../messages/${locale}.json`)).default;
-  return { locale, messages, timeZone: TIME_ZONE };
+  return { locale, messages, timeZone: TIME_ZONE, onError: onIntlError, getMessageFallback: intlMessageFallback };
 });

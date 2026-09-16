@@ -34,5 +34,7 @@ jobs:
       - run: pnpm test -- --coverage
       - run: psql "$DIRECT_URL" -c "create role anon nologin; create role authenticated nologin;"
       - run: pnpm db:migrate && pnpm db:seed
+      # the invoice PDF test launches Chromium through playwright-core
+      - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:integration
       - run: pnpm build

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { heIL, enUS } from "@clerk/localizations";
-import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "sonner";
+import { IntlProvider } from "@/components/layout/intl-provider";
 import { dirFor, type Locale } from "@/lib/i18n/config";
 import "./globals.css";
 
@@ -20,10 +20,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <ClerkProvider localization={locale === "he" ? heIL : enUS} signInUrl="/sign-in" afterSignOutUrl="/sign-in">
       <html lang={locale} dir={dir} suppressHydrationWarning>
         <body>
-          <NextIntlClientProvider locale={locale} messages={messages}>
+          <IntlProvider locale={locale} messages={messages}>
             {children}
             <Toaster position={dir === "rtl" ? "bottom-left" : "bottom-right"} dir={dir} richColors closeButton />
-          </NextIntlClientProvider>
+          </IntlProvider>
         </body>
       </html>
     </ClerkProvider>

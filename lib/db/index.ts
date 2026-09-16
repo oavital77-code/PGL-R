@@ -21,9 +21,15 @@ function createClient() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set");
   // Supabase pooled connections (transaction mode) require prepare=false.
+  // max_pipeline=1: postgres.js pipelines up to 100 statements per socket by default; through a
+  // transaction-mode pooler that crossed parameters between concurrent statements (a uuid filter
+  // received the "false" of a neighbouring is_read = $1) and left requests waiting forever.
+  // One statement in flight per connection is what the pooler actually supports.
   // Short idle/lifetime windows: a socket that sat through a frozen serverless instance is
   // closed by its own timer on thaw instead of being reused dead.
-  return postgres(url, { prepare: false, max: 5, idle_timeout: 10, max_lifetime: 60, connect_timeout: 10 });
+  // (max_pipeline is parsed by the driver but absent from its Options type.)
+  const options = { prepare: false, max_pipeline: 1, max: 5, idle_timeout: 10, max_lifetime: 60, connect_timeout: 10 };
+  return postgres(url, options as postgres.Options<Record<string, never>>);
 }
 
 type Sql = ReturnType<typeof postgres>;

@@ -1,7 +1,10 @@
 import { defineConfig } from "vitest/config";
 import tsconfigPaths from "vite-tsconfig-paths";
 
+import path from "node:path";
+
 export default defineConfig({
+  resolve: { alias: { "server-only": path.resolve(__dirname, "tests/stubs/server-only.ts") } },
   plugins: [tsconfigPaths()],
   test: {
     include: ["tests/unit/**/*.test.ts"],

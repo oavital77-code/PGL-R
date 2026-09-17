@@ -2,9 +2,11 @@ import "server-only";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { guardUnsafe, type Unsafe } from "./guard";
+import { resolveDatabaseUrl } from "./url";
 import * as schema from "./schema";
 
 export { DbTimeoutError } from "./guard";
+export { resolveDatabaseUrl } from "./url";
 
 declare global {
   var __pglDb: { sql: ReturnType<typeof postgres>; db: ReturnType<typeof makeDb> } | undefined;
@@ -16,8 +18,9 @@ const QUERY_TIMEOUT_MS = 8_000;
 type Sql = ReturnType<typeof postgres>;
 
 function createClient(): Sql {
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL is not set");
+  const raw = process.env.DATABASE_URL;
+  if (!raw) throw new Error("DATABASE_URL is not set");
+  const { url } = resolveDatabaseUrl(raw);
   // Supabase pooled connections (transaction mode) require prepare=false.
   // max_pipeline=1: one statement in flight per connection, the conservative setting for a
   // transaction-mode pooler. idle_timeout=5: a connection that is not in use is closed quickly,

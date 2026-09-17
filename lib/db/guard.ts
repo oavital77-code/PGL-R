@@ -28,15 +28,24 @@ export function isRetriableRead(query: string): boolean {
   return /^\s*(select|with)\b/i.test(query);
 }
 
-function timed<T>(p: PromiseLike<T>, ms: number, onTimeout: () => void): Promise<T> {
+/** Statements slower than this are logged with their text, so a stall can be attributed. */
+export const SLOW_STATEMENT_MS = 2_000;
+
+function timed<T>(p: PromiseLike<T>, ms: number, onTimeout: () => void, label: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
+  const started = Date.now();
   const guard = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
+      console.error(`[db] no reply after ${ms}ms: ${label}`);
       onTimeout();
       reject(new DbTimeoutError(ms));
     }, ms);
   });
-  return Promise.race([Promise.resolve(p), guard]).finally(() => clearTimeout(timer));
+  return Promise.race([Promise.resolve(p), guard]).finally(() => {
+    clearTimeout(timer);
+    const took = Date.now() - started;
+    if (took >= SLOW_STATEMENT_MS && took < ms) console.warn(`[db] slow ${took}ms: ${label}`);
+  });
 }
 
 /**
@@ -46,11 +55,12 @@ function timed<T>(p: PromiseLike<T>, ms: number, onTimeout: () => void): Promise
 export function guardUnsafe(current: () => { unsafe: Unsafe }, reset: (reason: string) => Promise<void>, timeoutMs: number): Unsafe {
   const attempt = (query: string, params?: unknown[], options?: unknown, retriesLeft = 1): PendingLike => {
     const pending = current().unsafe(query, params, options);
+    const label = query.replace(/\s+/g, " ").trim().slice(0, 120);
     const lost = () => {
       pending.cancel?.().catch(() => undefined);
     };
     const run = <T>(p: PromiseLike<T>, method?: keyof PendingLike): Promise<T> =>
-      timed(p, timeoutMs, lost).catch(async (e: unknown) => {
+      timed(p, timeoutMs, lost, label).catch(async (e: unknown) => {
         if (!(e instanceof DbTimeoutError)) throw e;
         await reset("query timeout");
         if (retriesLeft > 0 && isRetriableRead(query)) {

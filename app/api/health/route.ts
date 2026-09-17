@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import postgres from "postgres";
-import { db } from "@/lib/db";
+import { db, resolveDatabaseUrl } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +16,9 @@ export async function GET() {
 
   const pooled = await time(() => cap(db.execute(sql`select 1`), 5000));
   const cold = await time(async () => {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error("no DATABASE_URL");
-    const fresh = postgres(url, { prepare: false, max: 1, connect_timeout: 10 });
+    const raw = process.env.DATABASE_URL;
+    if (!raw) throw new Error("no DATABASE_URL");
+    const fresh = postgres(resolveDatabaseUrl(raw).url, { prepare: false, max: 1, connect_timeout: 10 });
     try {
       await cap(fresh`select 1`, 10000);
     } finally {
@@ -26,7 +26,8 @@ export async function GET() {
     }
   });
   const ok = pooled.ok && cold.ok;
-  return Response.json({ ok, ts: new Date().toISOString(), region: process.env.VERCEL_REGION ?? null, db: pooled, cold }, { status: ok ? 200 : 503 });
+  const pool = process.env.DATABASE_URL ? resolveDatabaseUrl(process.env.DATABASE_URL).mode : null;
+  return Response.json({ ok, ts: new Date().toISOString(), region: process.env.VERCEL_REGION ?? null, pool, db: pooled, cold }, { status: ok ? 200 : 503 });
 }
 
 async function time(fn: () => Promise<unknown>): Promise<{ ok: boolean; ms: number; error?: string }> {

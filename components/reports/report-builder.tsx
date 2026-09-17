@@ -6,7 +6,7 @@ import * as React from "react";
 import { toast } from "sonner";
 import { addNoteFromReportAction, deleteScheduleAction, deleteTemplateAction, runReportAction, runReportCompareAction, saveScheduleAction, saveTemplateAction } from "@/lib/reports/actions";
 import type { FilterData } from "@/lib/reports/filter-data";
-import type { FilterKey, ReportGroup, ReportParams, ReportResult, ReportRow } from "@/lib/reports/types";
+import type { FilterKey, ReportColumn, ReportGroup, ReportParams, ReportResult, ReportRow } from "@/lib/reports/types";
 import { formatDate, formatMoney, formatPct } from "@/lib/i18n/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +56,13 @@ function quickRange(kind: string): { from: string; to: string } {
     default:
       return { from: `${y}-01-01`, to: iso(now) };
   }
+}
+
+/** Column label, falling back to the raw label when no message exists. */
+type Translate = { (k: string): string; has: (k: string) => boolean };
+
+function colLabel(t: Translate, label: string): string {
+  return t.has(`columns.${label}`) ? t(`columns.${label}`) : label;
 }
 
 function fmtCell(type: string, v: unknown): string {
@@ -207,6 +214,15 @@ export function ReportBuilder({ defs, data, initialKey, initialParams, canSchedu
     }, 0);
   };
 
+  /** A cell's text: enum codes are resolved through the column's namespace, the rest is formatted. */
+  const cell = (c: ReportColumn, v: unknown): string => {
+    if (c.enumKey && typeof v === "string" && v) {
+      const key = `${c.enumKey}.${v}`;
+      return tAll.has(key) ? tAll(key) : v;
+    }
+    return fmtCell(c.type, v);
+  };
+
   const MultiSelect = ({ label, k, options }: { label: string; k: keyof ReportParams; options: { id: string; name: string }[] }) => (
     <Field label={label}>
       <select multiple value={(params[k] as string[] | undefined) ?? []} onChange={(e) => multi(k, [...e.target.selectedOptions].map((o) => o.value))} className="h-24 w-full rounded-md border border-input bg-card px-2 text-sm">
@@ -250,9 +266,9 @@ export function ReportBuilder({ defs, data, initialKey, initialParams, canSchedu
           {has("dateRange") ? (
             <>
               <Field label={t("date_range")}>
-                <div className="flex gap-1">
-                  <Input type="date" value={params.from ?? ""} onChange={(e) => set({ from: e.target.value || undefined })} />
-                  <Input type="date" value={params.to ?? ""} onChange={(e) => set({ to: e.target.value || undefined })} />
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                  <Input type="date" className="min-w-0" value={params.from ?? ""} onChange={(e) => set({ from: e.target.value || undefined })} />
+                  <Input type="date" className="min-w-0" value={params.to ?? ""} onChange={(e) => set({ to: e.target.value || undefined })} />
                 </div>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {["month", "prev_month", "quarter", "year", "prev_year"].map((q) => (
@@ -294,7 +310,7 @@ export function ReportBuilder({ defs, data, initialKey, initialParams, canSchedu
           {def.chartOptions.length ? (
             <span className="ms-auto flex items-center gap-1 text-sm">
               <Select value={chartKind} onChange={(e) => setChartKind(e.target.value as typeof chartKind)} className="w-28"><option value="none">{t("chart_none")}</option><option value="bar">{t("chart_bar")}</option><option value="line">{t("chart_line")}</option><option value="pie">{t("chart_pie")}</option></Select>
-              {chartKind !== "none" ? <Select value={chartMetric} onChange={(e) => setChartMetric(e.target.value)} className="w-36">{def.chartOptions.map((o) => <option key={o.metric} value={o.metric}>{t.has(`columns.${o.metric}`) ? t(`columns.${o.metric}`) : o.metric}</option>)}</Select> : null}
+              {chartKind !== "none" ? <Select value={chartMetric} onChange={(e) => setChartMetric(e.target.value)} className="w-36">{def.chartOptions.map((o) => <option key={o.metric} value={o.metric}>{colLabel(t, o.metric)}</option>)}</Select> : null}
             </span>
           ) : null}
         </div>
@@ -305,23 +321,25 @@ export function ReportBuilder({ defs, data, initialKey, initialParams, canSchedu
             <summary className="cursor-pointer">{t("columns_picker")}</summary>
             <div className="mt-2 flex flex-wrap gap-3">
               {result.columns.map((c) => (
-                <label key={c.key} className="flex items-center gap-1"><input type="checkbox" checked={visible?.includes(c.key) ?? false} onChange={(e) => setVisible((v) => (e.target.checked ? [...(v ?? []), c.key] : (v ?? []).filter((k) => k !== c.key)))} /> {t.has(`columns.${c.label}`) ? t(`columns.${c.label}`) : c.label}{c.group ? <span className="text-xs text-muted-foreground">({t(`column_groups.${c.group}`)})</span> : null}</label>
+                <label key={c.key} className="flex items-center gap-1"><input type="checkbox" checked={visible?.includes(c.key) ?? false} onChange={(e) => setVisible((v) => (e.target.checked ? [...(v ?? []), c.key] : (v ?? []).filter((k) => k !== c.key)))} /> <span>{colLabel(t, c.label)}</span>{c.group ? <span className="text-xs text-muted-foreground">({t(`column_groups.${c.group}`)})</span> : null}</label>
               ))}
             </div>
           </details>
         ) : null}
 
-        {chartKind !== "none" && chartData.length ? <ReportChart ref={chartRef} kind={chartKind} data={chartData} label={t.has(`columns.${chartMetric}`) ? t(`columns.${chartMetric}`) : chartMetric} prevLabel={t("previous_period")} /> : null}
+        {chartKind !== "none" && chartData.length ? <ReportChart ref={chartRef} kind={chartKind} data={chartData} label={colLabel(t, chartMetric)} prevLabel={t("previous_period")} /> : null}
 
         {/* table */}
         {result ? (
           <div className="overflow-x-auto rounded-lg border border-border bg-card">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-muted/80">
+            {/* w-max + min-w-full: columns keep their natural width and the wrapper scrolls,
+                instead of being squeezed until nowrap text spills over its neighbour. */}
+            <table className="w-max min-w-full text-sm">
+              <thead className="sticky top-0 z-10 bg-muted">
                 <tr>
                   {columns.map((c) => (
                     <th key={c.key} className="cursor-pointer whitespace-nowrap px-3 py-2 text-start font-semibold select-none" onClick={() => setSort((s) => (s?.key === c.key ? { key: c.key, dir: s.dir === 1 ? -1 : 1 } : { key: c.key, dir: 1 }))}>
-                      {t.has(`columns.${c.label}`) ? t(`columns.${c.label}`) : c.label}
+                      {colLabel(t, c.label)}
                       {sort?.key === c.key ? (sort.dir === 1 ? " ▲" : " ▼") : ""}
                     </th>
                   ))}
@@ -334,19 +352,19 @@ export function ReportBuilder({ defs, data, initialKey, initialParams, canSchedu
                   return (
                     <tr key={r.id} className={cn("border-t border-border hover:bg-muted/40", r.level === 0 && hasChildren && "font-semibold bg-muted/20")}>
                       {columns.map((c, i) => (
-                        <td key={c.key} className={cn("px-3 py-1.5 whitespace-nowrap", c.type !== "text" && "num text-end", c.type === "money" && Number(r.cells[c.key]) < 0 && "text-destructive")} style={i === 0 ? { paddingInlineStart: `${12 + r.level * 18}px` } : undefined}>
+                        <td key={c.key} className={cn("px-3 py-1.5 whitespace-nowrap", c.type !== "text" && "num-cell text-end", c.type === "money" && Number(r.cells[c.key]) < 0 && "text-destructive")} style={i === 0 ? { paddingInlineStart: `${12 + r.level * 18}px` } : undefined}>
                           {i === 0 ? (
                             <span className="inline-flex items-center gap-1">
                               {hasChildren ? (
                                 <button onClick={() => setCollapsed((s) => { const n = new Set(s); if (n.has(r.id)) n.delete(r.id); else n.add(r.id); return n; })} className="text-muted-foreground">{collapsed.has(r.id) ? <ChevronLeft className="h-3.5 w-3.5 rtl:rotate-0" /> : <ChevronDown className="h-3.5 w-3.5" />}</button>
                               ) : null}
-                              {r.link ? <a href={r.link} className="text-primary hover:underline">{fmtCell(c.type, r.cells[c.key])}</a> : fmtCell(c.type, r.cells[c.key])}
+                              {r.link ? <a href={r.link} className="text-primary hover:underline">{cell(c, r.cells[c.key])}</a> : cell(c, r.cells[c.key])}
                               {r.warnings?.map((w) => <span key={w} title={tAll(`contracts.warn_${w}`)} className="text-warning">⚠</span>)}
                             </span>
                           ) : c.editable === "note" && r.entity?.type === "contract" ? (
                             <InlineNote contractId={r.entity.id} value={String(r.cells[c.key] ?? "")} onSaved={run} />
                           ) : (
-                            fmtCell(c.type, r.cells[c.key])
+                            cell(c, r.cells[c.key])
                           )}
                         </td>
                       ))}
@@ -356,7 +374,7 @@ export function ReportBuilder({ defs, data, initialKey, initialParams, canSchedu
               </tbody>
               {showTotals && result.totals ? (
                 <tfoot className="sticky bottom-0 border-t bg-muted/80 font-bold">
-                  <tr>{columns.map((c, i) => <td key={c.key} className={cn("px-3 py-2", c.type !== "text" && "num text-end")}>{i === 0 ? tc("total") : fmtCell(c.type, result.totals![c.key])}</td>)}</tr>
+                  <tr>{columns.map((c, i) => <td key={c.key} className={cn("px-3 py-2 whitespace-nowrap", c.type !== "text" && "num-cell text-end")}>{i === 0 ? tc("total") : fmtCell(c.type, result.totals![c.key])}</td>)}</tr>
                 </tfoot>
               ) : null}
             </table>

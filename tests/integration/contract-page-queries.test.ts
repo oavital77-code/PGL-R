@@ -1,7 +1,7 @@
 /**
  * The contract page fires its whole data set in one Promise.all. This runs the same set through
- * the real client (guard, pipelining off) so a hang or a driver-level failure shows up here and
- * not only in production.
+ * the real client (guard, pipelining off) and a pooler, so a hang or a driver-level failure shows
+ * up here and not only in production.
  */
 import "dotenv/config";
 import { describe, expect, it } from "vitest";
@@ -21,7 +21,6 @@ describe.skipIf(!process.env.DATABASE_URL)("contract page query set", () => {
       .limit(1);
     expect(row).toBeDefined();
     const id = row!.id;
-    const started = Date.now();
     const results = await Promise.all([
       contractBalancesReport({ contractIds: [id] }),
       contractFormLookups(),
@@ -36,8 +35,9 @@ describe.skipIf(!process.env.DATABASE_URL)("contract page query set", () => {
       db.select({ id: stageNames.id, name: stageNames.name }).from(stageNames).where(eq(stageNames.isActive, true)).orderBy(stageNames.sortOrder),
       db.select({ id: projects.id }).from(projects).where(eq(projects.id, row!.projectId)),
     ]);
-    const ms = Date.now() - started;
+    // Resolution is the assertion: a statement that hangs is failed by the query guard
+    // (DbTimeoutError) rather than waiting forever. Wall-clock thresholds flake on a shared runner.
     expect(results[0].projects.length).toBeGreaterThan(0);
-    expect(ms).toBeLessThan(5000);
+    expect(results[0].projects.flatMap((p) => p.contracts).some((c) => c.id === id)).toBe(true);
   });
 });

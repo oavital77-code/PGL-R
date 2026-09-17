@@ -45,13 +45,13 @@ export async function contractBalances(p: ReportParams): Promise<ReportResult> {
     rows.push({ id: cid, level: 0, link: `/clients/${clientId}`, cells: { name: prs[0]!.clientName, client: prs[0]!.clientName, ...cellsFor(agg, prs.reduce((a, x) => a + x.hoursTotal, 0), prs.reduce((a, x) => a + x.hoursThisYear, 0), bm, prs.reduce((a, x) => a + x.hoursCost, 0), prs.reduce((a, x) => a + x.supplierCost, 0)) } });
     for (const pr of prs) {
       const pid = `${cid}|p:${pr.id}`;
-      rows.push({ id: pid, parentId: cid, level: 1, link: `/projects/${pr.id}`, cells: { name: `${pr.workNumber} – ${pr.name}`, client: pr.clientName, project: pr.name, work_number: pr.workNumber, pm: pr.projectManager, status: pr.statusCode, ...cellsFor(pr.balances, pr.hoursTotal, pr.hoursThisYear, pr.hoursByMonth, pr.hoursCost, pr.supplierCost) } });
+      rows.push({ id: pid, parentId: cid, level: 1, link: `/projects/${pr.id}`, cells: { name: `${pr.workNumber} – ${pr.name}`, client: pr.clientName, project: pr.name, work_number: pr.workNumber, pm: pr.projectManager, status: pr.statusName ?? pr.statusCode, ...cellsFor(pr.balances, pr.hoursTotal, pr.hoursThisYear, pr.hoursByMonth, pr.hoursCost, pr.supplierCost) } });
       for (const c of pr.contracts.filter((x) => x.direction === "income")) {
         if (p.statusCodes?.length && !p.statusCodes.includes(c.statusCode ?? "")) continue;
         const ccid = `${pid}|k:${c.id}`;
         const bm2: Record<string, number> = {};
         for (const s of c.subContracts) for (const [k, v] of Object.entries(s.hoursByMonth)) bm2[k] = (bm2[k] ?? 0) + v;
-        rows.push({ id: ccid, parentId: pid, level: 2, link: `/contracts/${c.id}`, warnings: c.warnings, entity: { type: "contract", id: c.id }, cells: { name: `${c.numberInProject}. ${c.name}`, status: c.statusCode, note: c.lastNote, ...cellsFor(c.balances, c.subContracts.reduce((a, x) => a + x.hoursTotal, 0), c.subContracts.reduce((a, x) => a + x.hoursThisYear, 0), bm2, c.subContracts.reduce((a, x) => a + x.hoursCost, 0), 0) } });
+        rows.push({ id: ccid, parentId: pid, level: 2, link: `/contracts/${c.id}`, warnings: c.warnings, entity: { type: "contract", id: c.id }, cells: { name: `${c.numberInProject}. ${c.name}`, status: c.statusName ?? c.statusCode, note: c.lastNote, ...cellsFor(c.balances, c.subContracts.reduce((a, x) => a + x.hoursTotal, 0), c.subContracts.reduce((a, x) => a + x.hoursThisYear, 0), bm2, c.subContracts.reduce((a, x) => a + x.hoursCost, 0), 0) } });
         for (const s of c.subContracts) {
           if (p.pricingMethods?.length && !p.pricingMethods.includes(s.pricingMethod)) continue;
           const sid = `${ccid}|s:${s.id}`;
@@ -183,7 +183,7 @@ export async function invoicesReport(p: ReportParams): Promise<ReportResult> {
     .where(and(isNull(invoices.deletedAt), gte(invoices.invoiceDate, from), lte(invoices.invoiceDate, to), p.clientIds?.length ? inArray(invoices.clientId, p.clientIds) : undefined, p.projectIds?.length ? inArray(projects.id, p.projectIds) : undefined, p.invoiceStatuses?.length ? inArray(invoices.status, p.invoiceStatuses as (typeof invoices.$inferSelect.status)[]) : undefined))
     .orderBy(desc(invoices.invoiceDate));
   return {
-    columns: [{ key: "number", label: "invoice_number", type: "text" }, { key: "kind", label: "kind", type: "text" }, { key: "date", label: "date", type: "date" }, { key: "client", label: "client", type: "text" }, { key: "project", label: "project", type: "text" }, { key: "partial", label: "partial", type: "number" }, { key: "subtotal", label: "subtotal_base", type: "money", sum: true }, { key: "index_diff", label: "index_diff", type: "money", sum: true }, { key: "before_vat", label: "before_vat", type: "money", sum: true }, { key: "vat", label: "vat", type: "money", sum: true }, { key: "total", label: "total", type: "money", sum: true }, { key: "paid", label: "paid", type: "money", sum: true }, { key: "due", label: "due_date", type: "date" }, { key: "status", label: "status", type: "text" }],
+    columns: [{ key: "number", label: "invoice_number", type: "text" }, { key: "kind", label: "kind", type: "text", enumKey: "invoices.kinds" }, { key: "date", label: "date", type: "date" }, { key: "client", label: "client", type: "text" }, { key: "project", label: "project", type: "text" }, { key: "partial", label: "partial", type: "number" }, { key: "subtotal", label: "subtotal_base", type: "money", sum: true }, { key: "index_diff", label: "index_diff", type: "money", sum: true }, { key: "before_vat", label: "before_vat", type: "money", sum: true }, { key: "vat", label: "vat", type: "money", sum: true }, { key: "total", label: "total", type: "money", sum: true }, { key: "paid", label: "paid", type: "money", sum: true }, { key: "due", label: "due_date", type: "date" }, { key: "status", label: "status", type: "text", enumKey: "invoices.status" }],
     rows: rows.map((r) => ({ id: r.i.id, level: 0, link: `/invoices/${r.i.id}`, cells: { number: r.i.invoiceNumber, kind: r.i.invoiceKind, date: r.i.invoiceDate, client: r.client, project: `${r.workNumber} – ${r.project}`, partial: r.i.partialNumber, subtotal: Number(r.i.subtotalBase), index_diff: Number(r.i.indexDiff), before_vat: Number(r.i.beforeVat), vat: Number(r.i.vatAmount), total: Number(r.i.total), paid: Number(r.paid), due: r.i.dueDate, status: r.i.status } })),
   };
 }
@@ -216,7 +216,7 @@ export async function receiptsReport(p: ReportParams): Promise<ReportResult> {
     .orderBy(desc(receipts.receiptDate));
   void receiptAllocations;
   return {
-    columns: [{ key: "date", label: "date", type: "date" }, { key: "client", label: "client", type: "text" }, { key: "amount", label: "amount", type: "money", sum: true }, { key: "allocated", label: "allocated", type: "money", sum: true }, { key: "method", label: "method", type: "text" }, { key: "reference", label: "reference", type: "text" }, { key: "invoices", label: "allocations", type: "text" }],
+    columns: [{ key: "date", label: "date", type: "date" }, { key: "client", label: "client", type: "text" }, { key: "amount", label: "amount", type: "money", sum: true }, { key: "allocated", label: "allocated", type: "money", sum: true }, { key: "method", label: "method", type: "text", enumKey: "receipts.methods" }, { key: "reference", label: "reference", type: "text" }, { key: "invoices", label: "allocations", type: "text" }],
     rows: rows.map((r) => ({ id: r.r.id, level: 0, cells: { date: r.r.receiptDate, client: r.client, amount: Number(r.r.amount), allocated: Number(r.allocated), method: r.r.method, reference: r.r.reference, invoices: r.invoicesList } })),
   };
 }
@@ -260,7 +260,7 @@ export async function supplierInvoicesReport(p: ReportParams): Promise<ReportRes
     .where(and(isNull(supplierInvoices.deletedAt), gte(supplierInvoices.invoiceDate, from), lte(supplierInvoices.invoiceDate, to), p.supplierIds?.length ? inArray(contracts.supplierId, p.supplierIds) : undefined, p.projectIds?.length ? inArray(projects.id, p.projectIds) : undefined))
     .orderBy(desc(supplierInvoices.invoiceDate));
   return {
-    columns: [{ key: "number", label: "invoice_number", type: "text" }, { key: "supplier", label: "supplier", type: "text" }, { key: "project", label: "project", type: "text" }, { key: "date", label: "date", type: "date" }, { key: "before_vat", label: "before_vat", type: "money", sum: true }, { key: "total", label: "total", type: "money", sum: true }, { key: "claimed", label: "claimed_pct", type: "pct" }, { key: "status", label: "status", type: "text" }, { key: "approvals", label: "approvals", type: "text" }],
+    columns: [{ key: "number", label: "invoice_number", type: "text" }, { key: "supplier", label: "supplier", type: "text" }, { key: "project", label: "project", type: "text" }, { key: "date", label: "date", type: "date" }, { key: "before_vat", label: "before_vat", type: "money", sum: true }, { key: "total", label: "total", type: "money", sum: true }, { key: "claimed", label: "claimed_pct", type: "pct" }, { key: "status", label: "status", type: "text", enumKey: "supplier_invoices.status" }, { key: "approvals", label: "approvals", type: "text" }],
     rows: rows.map((r) => ({ id: r.i.id, level: 0, link: `/supplier-invoices/${r.i.id}`, cells: { number: r.i.supplierInvoiceNumber, supplier: r.supplier, project: `${r.workNumber} – ${r.project}`, date: r.i.invoiceDate, before_vat: Number(r.i.amountBeforeVat), total: Number(r.i.total), claimed: r.i.progressPctClaimed ? Number(r.i.progressPctClaimed) : null, status: r.i.status, approvals: r.approvals } })),
   };
 }
@@ -275,7 +275,7 @@ export async function auditReport(p: ReportParams): Promise<ReportResult> {
     .orderBy(desc(auditLog.changedAt))
     .limit(5000);
   return {
-    columns: [{ key: "time", label: "time", type: "text" }, { key: "user", label: "user", type: "text" }, { key: "table", label: "table", type: "text" }, { key: "record", label: "record", type: "text" }, { key: "action", label: "action", type: "text" }],
+    columns: [{ key: "time", label: "time", type: "text" }, { key: "user", label: "user", type: "text" }, { key: "table", label: "table", type: "text" }, { key: "record", label: "record", type: "text" }, { key: "action", label: "action", type: "text", enumKey: "audit.actions" }],
     rows: rows.map((r) => ({ id: r.a.id, level: 0, cells: { time: r.a.changedAt.toISOString().replace("T", " ").slice(0, 19), user: r.user ?? "system", table: r.a.tableName, record: r.a.recordId, action: r.a.action } })),
   };
 }

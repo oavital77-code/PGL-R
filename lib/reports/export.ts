@@ -1,6 +1,9 @@
 import "server-only";
 import ExcelJS from "exceljs";
-import type { ReportResult } from "./types";
+import type { ReportColumn, ReportResult } from "./types";
+import { flattenEnums } from "./enums";
+
+export { flattenEnums };
 import { htmlToPdf, fontDataUri } from "@/lib/pdf/render";
 import { formatDate, formatMoney, formatPct } from "@/lib/i18n/format";
 import { getSetting } from "@/lib/settings/service";
@@ -8,9 +11,17 @@ import { getSetting } from "@/lib/settings/service";
 export interface ExportLabels {
   title: string;
   columns: Record<string, string>;
+  /** message namespaces the enum columns point at, flattened: "invoices.status.paid" → "שולם" */
+  enums: Record<string, string>;
   filters: string;
   generatedAt: string;
   total: string;
+}
+
+/** A cell's exported text: enum codes resolve through the column's namespace, the rest is formatted. */
+function cellText(c: ReportColumn, v: unknown, labels: ExportLabels): string {
+  if (c.enumKey && typeof v === "string" && v) return labels.enums[`${c.enumKey}.${v}`] ?? v;
+  return fmtCell(c.type, v);
 }
 
 function fmtCell(type: string, v: unknown): string {
@@ -37,7 +48,16 @@ export async function reportToXlsx(res: ReportResult, visible: string[], labels:
   const cols = res.columns.filter((c) => visible.includes(c.key));
   ws.columns = cols.map((c) => ({ header: labels.columns[c.label] ?? c.label, key: c.key, width: c.type === "text" ? 32 : 14 }));
   for (const r of res.rows) {
-    const row = ws.addRow(Object.fromEntries(cols.map((c) => [c.key, c.type === "date" ? (r.cells[c.key] ? formatDate(String(r.cells[c.key])) : "") : (r.cells[c.key] ?? null)])));
+    const row = ws.addRow(
+      Object.fromEntries(
+        cols.map((c) => {
+          const v = r.cells[c.key];
+          if (c.enumKey) return [c.key, cellText(c, v, labels)];
+          if (c.type === "date") return [c.key, v ? formatDate(String(v)) : ""];
+          return [c.key, v ?? null];
+        }),
+      ),
+    );
     if (r.level > 0) row.getCell(1).alignment = { indent: r.level };
     if (r.level === 0 && res.rows.some((x) => x.parentId === r.id)) row.font = { bold: true };
   }
@@ -68,7 +88,7 @@ tr.l0 td{font-weight:700;background:#f6f7fb}tr.total td{font-weight:800;backgrou
 </style></head><body><h1>${esc(labels.title)}</h1><div class="meta">${esc(company.name)} · ${esc(labels.generatedAt)}${labels.filters ? ` · ${esc(labels.filters)}` : ""}</div>
 ${chartPng ? `<img src="${chartPng}" style="max-width:100%;max-height:220px;margin-bottom:8px">` : ""}
 <table><thead><tr>${cols.map((c) => `<th>${esc(labels.columns[c.label] ?? c.label)}</th>`).join("")}</tr></thead><tbody>
-${res.rows.map((r) => `<tr class="l${r.level}">${cols.map((c, i) => `<td class="${c.type === "text" ? "" : "n"}" ${i === 0 ? `style="padding-inline-start:${4 + r.level * 12}px"` : ""}>${esc(fmtCell(c.type, r.cells[c.key]))}${i === 0 && r.warnings?.length ? ` <span class="warn">⚠</span>` : ""}</td>`).join("")}</tr>`).join("")}
+${res.rows.map((r) => `<tr class="l${r.level}">${cols.map((c, i) => `<td class="${c.type === "text" ? "" : "n"}" ${i === 0 ? `style="padding-inline-start:${4 + r.level * 12}px"` : ""}>${esc(cellText(c, r.cells[c.key], labels))}${i === 0 && r.warnings?.length ? ` <span class="warn">⚠</span>` : ""}</td>`).join("")}</tr>`).join("")}
 ${res.totals ? `<tr class="total">${cols.map((c, i) => `<td class="${c.type === "text" ? "" : "n"}">${i === 0 ? esc(labels.total) : esc(fmtCell(c.type, res.totals![c.key]))}</td>`).join("")}</tr>` : ""}
 </tbody></table></body></html>`;
   return htmlToPdf(html);

@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { runReport } from "@/lib/reports/run";
-import { reportToPdf, reportToXlsx } from "@/lib/reports/export";
+import { flattenEnums, reportToPdf, reportToXlsx } from "@/lib/reports/export";
 import { uploadGenerated } from "@/lib/storage";
 import he from "@/messages/he.json";
 import en from "@/messages/en.json";
@@ -20,7 +20,8 @@ export async function POST(req: Request) {
   } catch {
     return new Response("forbidden", { status: 403 });
   }
-  const labels = { title: msgs.reports.names[body.key] ?? body.key, columns: msgs.reports.columns, filters: body.filters ?? "", generatedAt: `${msgs.reports.generated_at} ${new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}`, total: msgs.reports.total };
+  const enums = flattenEnums(msgs as unknown as Record<string, unknown>, res.columns);
+  const labels = { title: msgs.reports.names[body.key] ?? body.key, columns: msgs.reports.columns, enums, filters: body.filters ?? "", generatedAt: `${msgs.reports.generated_at} ${new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}`, total: msgs.reports.total };
   const bytes = body.format === "pdf" ? await reportToPdf(res, body.visible, labels, body.chartPng) : await reportToXlsx(res, body.visible, labels);
   const mime = body.format === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
   const fileName = `${body.key.replace(/\./g, "_")}_${new Date().toISOString().slice(0, 10)}.${body.format}`;

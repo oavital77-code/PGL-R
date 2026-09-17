@@ -315,7 +315,11 @@
     "second_approver_required": "A different approver than the creator is required",
     "signer_without_signature": "Signer has no signature image",
     "email_failed": "E-mail sending failed",
-    "has_receipts": "Cannot cancel an invoice with receipts"
+    "has_receipts": "Cannot cancel an invoice with receipts",
+    "kinds": {
+      "proforma": "Proforma invoice",
+      "credit": "Credit note"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -688,7 +692,12 @@
     "reason": "Reason",
     "system": "System",
     "export": "Export Excel",
-    "show_diff": "Show changes"
+    "show_diff": "Show changes",
+    "actions": {
+      "insert": "Created",
+      "update": "Updated",
+      "delete": "Deleted"
+    }
   },
   "import": {
     "title": "Import from Admiral",

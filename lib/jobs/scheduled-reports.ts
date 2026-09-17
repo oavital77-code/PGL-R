@@ -3,7 +3,7 @@ import { and, eq, lte } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { reportSchedules, reportTemplates, users } from "@/lib/db/schema";
 import { runReport } from "@/lib/reports/run";
-import { reportToPdf, reportToXlsx } from "@/lib/reports/export";
+import { flattenEnums, reportToPdf, reportToXlsx } from "@/lib/reports/export";
 import { computeNextRun } from "@/lib/reports/schedule";
 import { sendEmail } from "@/lib/email/send";
 import { renderTemplate } from "@/lib/email/templates";
@@ -29,7 +29,7 @@ export async function scheduledReportsJob() {
       const user = await getCurrentUserForJob(owner.id);
       const cfg = t.config as { params?: Record<string, unknown>; visible?: string[] };
       const res = await runReport(t.reportType, cfg.params ?? {}, user);
-      const labels = { title: t.name, columns: msgs.reports.columns, filters: "", generatedAt: `${msgs.reports.generated_at} ${new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}`, total: msgs.reports.total };
+      const labels = { title: t.name, columns: msgs.reports.columns, enums: flattenEnums(msgs as unknown as Record<string, unknown>, res.columns), filters: "", generatedAt: `${msgs.reports.generated_at} ${new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" })}`, total: msgs.reports.total };
       const visible = cfg.visible ?? res.columns.filter((c) => !c.hidden).map((c) => c.key);
       const bytes = s.format === "pdf" ? await reportToPdf(res, visible, labels) : await reportToXlsx(res, visible, labels);
       const vars = { report_name: t.name, date: new Date().toLocaleDateString("he-IL"), company_name: company.name, sender_name: email.from_name };

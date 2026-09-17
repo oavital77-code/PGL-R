@@ -66,6 +66,8 @@ export interface SubContractRow {
   participatesInHours: boolean;
   isLocked: boolean;
   statusCode: string | null;
+  /** the status label as the client maintains it (contract_statuses.name) */
+  statusName: string | null;
   balances: Balances;
   milestones: MilestoneRow[];
   hoursTotal: number;
@@ -81,6 +83,8 @@ export interface ContractRow {
   name: string;
   direction: "income" | "expense";
   statusCode: string | null;
+  /** the status label as the client maintains it (contract_statuses.name) */
+  statusName: string | null;
   signedDate: string | null;
   isLocked: boolean;
   balances: Balances;
@@ -98,6 +102,8 @@ export interface ProjectRow {
   clientName: string;
   projectManager: string | null;
   statusCode: string | null;
+  /** the status label as the client maintains it (contract_statuses.name) */
+  statusName: string | null;
   balances: Balances;
   contracts: ContractRow[];
   hoursTotal: number;
@@ -167,6 +173,7 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
       clientName: clients.name,
       pm: sql<string | null>`${users.firstName} || ' ' || ${users.lastName}`,
       statusCode: contractStatuses.code,
+      statusName: contractStatuses.name,
     })
     .from(projects)
     .innerJoin(clients, eq(clients.id, projects.clientId))
@@ -178,7 +185,7 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
   if (projectIds.length === 0) return { projects: [], months: [] };
 
   const contractRows = await db
-    .select({ c: contracts, statusCode: contractStatuses.code, isTerminal: contractStatuses.isTerminal })
+    .select({ c: contracts, statusCode: contractStatuses.code, statusName: contractStatuses.name, isTerminal: contractStatuses.isTerminal })
     .from(contracts)
     .leftJoin(contractStatuses, eq(contractStatuses.id, contracts.statusId))
     .where(and(isNull(contracts.deletedAt), inArray(contracts.projectId, projectIds), filter.contractIds ? inArray(contracts.id, filter.contractIds) : undefined))
@@ -187,7 +194,7 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
   if (contractIds.length === 0) return { projects: projRows.map((p) => emptyProject(p)), months: [] };
 
   const scRows = await db
-    .select({ sc: subContracts, statusCode: contractStatuses.code, isTerminal: contractStatuses.isTerminal })
+    .select({ sc: subContracts, statusCode: contractStatuses.code, statusName: contractStatuses.name, isTerminal: contractStatuses.isTerminal })
     .from(subContracts)
     .leftJoin(contractStatuses, eq(contractStatuses.id, subContracts.statusId))
     .where(and(isNull(subContracts.deletedAt), inArray(subContracts.contractId, contractIds), filter.subContractIds ? inArray(subContracts.id, filter.subContractIds) : undefined))
@@ -260,7 +267,7 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
   const monthsSet = new Set<string>();
   const scByContract = new Map<string, SubContractRow[]>();
 
-  for (const { sc, statusCode, isTerminal } of scRows) {
+  for (const { sc, statusCode, statusName, isTerminal } of scRows) {
     if (filter.activeOnly && isTerminal) continue;
     const lines = linesBySc.get(sc.id) ?? [];
     const billedSoFar = sumMoney(lines.filter((l) => COUNTED.includes(l.status)).map((l) => Number(l.l.amountThis) * (l.kind === "credit" ? -1 : 1)));
@@ -365,6 +372,7 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
       participatesInHours: sc.participatesInHours,
       isLocked: sc.isLocked,
       statusCode,
+      statusName,
       balances,
       milestones: msList,
       hoursTotal: Math.round((minutesTotal / 60) * 100) / 100,
@@ -376,7 +384,7 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
   }
 
   const contractsByProject = new Map<string, ContractRow[]>();
-  for (const { c, statusCode, isTerminal } of contractRows) {
+  for (const { c, statusCode, statusName, isTerminal } of contractRows) {
     if (filter.activeOnly && isTerminal) continue;
     const subs = scByContract.get(c.id) ?? [];
     const balances = aggregateBalances(subs.map((s) => s.balances));
@@ -391,6 +399,7 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
       name: c.name,
       direction: c.direction,
       statusCode,
+      statusName,
       signedDate: c.signedDate,
       isLocked: c.isLocked,
       balances,
@@ -431,7 +440,7 @@ export async function contractBalancesReport(filter: BalancesFilter = {}): Promi
   return { projects: out, months: [...monthsSet].sort() };
 }
 
-function emptyProject(p: { id: string; workNumber: string; name: string; clientId: string; clientName: string; pm: string | null; statusCode: string | null }): ProjectRow {
+function emptyProject(p: { id: string; workNumber: string; name: string; clientId: string; clientName: string; pm: string | null; statusCode: string | null; statusName: string | null }): ProjectRow {
   return {
     id: p.id,
     workNumber: p.workNumber,
@@ -440,6 +449,7 @@ function emptyProject(p: { id: string; workNumber: string; name: string; clientI
     clientName: p.clientName,
     projectManager: p.pm,
     statusCode: p.statusCode,
+    statusName: p.statusName,
     balances: aggregateBalances([]),
     contracts: [],
     hoursTotal: 0,

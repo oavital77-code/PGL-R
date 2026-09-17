@@ -69,11 +69,22 @@ body {
   outline-offset: 2px;
 }
 
-/* Numbers are always LTR inside cells (spec §16.1) */
+/* Digits read left-to-right even inside an RTL line (spec §16.1). */
 .num {
   direction: ltr;
   unicode-bidi: isolate;
   font-variant-numeric: tabular-nums;
+}
+
+/*
+ * A numeric table cell: the digits are isolated LTR, but the cell itself keeps the table's
+ * direction so `text-align: start/end` still means start/end of an RTL row. Setting
+ * `direction: ltr` on the cell (what .num does) silently reversed that and pushed numbers
+ * against the neighbouring column.
+ */
+.num-cell {
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: plaintext;
 }
 
 @media print {

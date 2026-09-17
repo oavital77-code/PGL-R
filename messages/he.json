@@ -315,7 +315,11 @@
     "second_approver_required": "נדרש מאשר שונה מהיוצר",
     "signer_without_signature": "לחותם אין תמונת חתימה",
     "email_failed": "שליחת המייל נכשלה",
-    "has_receipts": "לא ניתן לבטל חשבון עם תקבולים"
+    "has_receipts": "לא ניתן לבטל חשבון עם תקבולים",
+    "kinds": {
+      "proforma": "חשבון עסקה",
+      "credit": "זיכוי"
+    }
   },
   "settings": {
     "title": "הגדרות",
@@ -688,7 +692,12 @@
     "reason": "סיבה",
     "system": "מערכת",
     "export": "ייצוא Excel",
-    "show_diff": "הצג שינויים"
+    "show_diff": "הצג שינויים",
+    "actions": {
+      "insert": "יצירה",
+      "update": "עדכון",
+      "delete": "מחיקה"
+    }
   },
   "import": {
     "title": "ייבוא מאדמירל",

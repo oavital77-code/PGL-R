@@ -18,6 +18,11 @@ export interface ReportColumn {
   sum?: boolean;
   /** inline-editable status note (contract balances) */
   editable?: "note";
+  /**
+   * The cell holds an enum code, not a label: render it through this message namespace
+   * (`<enumKey>.<value>`). Without it a report shows raw codes like "fixed_price".
+   */
+  enumKey?: string;
 }
 
 export interface ReportRow {

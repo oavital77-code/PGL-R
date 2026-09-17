@@ -32,6 +32,14 @@
 4. העתיקו את שתי מחרוזות החיבור מ-`Project Settings → Database`:
    - **Transaction pooler** (פורט 6543) ← זה `DATABASE_URL`, לשימוש האפליקציה.
    - **Direct connection** (פורט 5432) ← זה `DIRECT_URL`, לשימוש migrations בלבד.
+
+   > למה דווקא Transaction pooler: ב-Vercel כל מופע של האפליקציה "מוקפא" ברגע שהתגובה נשלחה,
+   > וחיבורים שנשארו פתוחים באותו רגע נשארים תפוסים ב-pooler. במצב Session (פורט 5432) לפרויקט
+   > Nano/Micro יש רק 15 חיבורים כאלה, וכמה מופעים מוקפאים מספיקים כדי שכל בקשה חדשה תיכשל
+   > ב-`max clients reached in session mode`. במצב Transaction חיבור לקוח פנוי לא תופס כלום.
+   > בנוסף האפליקציה סוגרת את חיבוריה אחרי כל תגובה (`lib/db/release.ts`), כך שמופע מוקפא
+   > לא משאיר אחריו חיבורים. הקוד מתקן אוטומטית כתובת על פורט 5432 של ה-pooler ל-6543;
+   > `DB_POOL_MODE=session` מבטל זאת לצורך בדיקה בלבד. `/api/health` מציג את המצב בפועל (`pool`).
 5. העתיקו מ-`Project Settings → API`:
    - `Project URL` ← `NEXT_PUBLIC_SUPABASE_URL`
    - `service_role` key ← `SUPABASE_SERVICE_ROLE_KEY`

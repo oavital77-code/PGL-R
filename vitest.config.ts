@@ -6,8 +6,9 @@ import path from "node:path";
 export default defineConfig({
   resolve: { alias: { "server-only": path.resolve(__dirname, "tests/stubs/server-only.ts") } },
   plugins: [tsconfigPaths()],
+  esbuild: { jsx: "automatic" },
   test: {
-    include: ["tests/unit/**/*.test.ts"],
+    include: ["tests/unit/**/*.test.{ts,tsx}"],
     environment: "node",
     coverage: {
       provider: "v8",

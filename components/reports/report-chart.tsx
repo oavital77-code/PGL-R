@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { useRtl } from "@/components/ui/use-rtl";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 const COLORS = ["#2a3380", "#38bdf8", "#4453bd", "#0ea5e9", "#8a97df", "#7dd3fc", "#b3bbeb", "#075985", "#161b45", "#e0f2fe"];
@@ -13,6 +14,7 @@ export interface ChartDatum {
 
 export const ReportChart = React.forwardRef<HTMLDivElement, { kind: "bar" | "line" | "pie"; data: ChartDatum[]; label: string; prevLabel?: string }>(function ReportChart({ kind, data, label, prevLabel }, ref) {
   const hasPrev = data.some((d) => d.prev !== undefined);
+  const rtl = useRtl();
   return (
     <div ref={ref} className="h-72 rounded-lg border border-border bg-card p-3">
       <ResponsiveContainer width="100%" height="100%">
@@ -29,7 +31,7 @@ export const ReportChart = React.forwardRef<HTMLDivElement, { kind: "bar" | "lin
         ) : kind === "line" ? (
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e3e6ef" />
-            <XAxis dataKey="name" fontSize={11} />
+            <XAxis dataKey="name" fontSize={11} reversed={rtl} />
             <YAxis fontSize={11} tickFormatter={fmt} orientation="right" />
             <Tooltip formatter={fmt} />
             <Legend />
@@ -39,7 +41,7 @@ export const ReportChart = React.forwardRef<HTMLDivElement, { kind: "bar" | "lin
         ) : (
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e3e6ef" />
-            <XAxis dataKey="name" fontSize={11} interval={0} angle={data.length > 8 ? -30 : 0} textAnchor={data.length > 8 ? "end" : "middle"} height={data.length > 8 ? 70 : 30} />
+            <XAxis dataKey="name" fontSize={11} reversed={rtl} interval={0} angle={data.length > 8 ? -30 : 0} textAnchor={data.length > 8 ? "end" : "middle"} height={data.length > 8 ? 70 : 30} />
             <YAxis fontSize={11} tickFormatter={fmt} orientation="right" />
             <Tooltip formatter={fmt} />
             <Legend />

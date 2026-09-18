@@ -20,7 +20,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <ClerkProvider localization={locale === "he" ? heIL : enUS} signInUrl="/sign-in" afterSignOutUrl="/sign-in">
       <html lang={locale} dir={dir} suppressHydrationWarning>
         <body>
-          <IntlProvider locale={locale} messages={messages}>
+          <IntlProvider locale={locale} dir={dir} messages={messages}>
             {children}
             <Toaster position={dir === "rtl" ? "bottom-left" : "bottom-right"} dir={dir} richColors closeButton />
           </IntlProvider>

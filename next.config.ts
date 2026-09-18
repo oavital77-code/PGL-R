@@ -34,7 +34,10 @@ const nextConfig: NextConfig = {
   // runtime, so file tracing never sees them and the deployed function had no browser
   // ("The input directory …/@sparticuz/chromium/bin does not exist"). Ship them with every
   // route: invoice PDFs come from a server action on /invoices/[id], report PDFs from /reports.
-  outputFileTracingIncludes: { "/**/*": ["./node_modules/@sparticuz/chromium/bin/**"] },
+  // The path is the package's real location in the pnpm store, which is also where the
+  // module looks for bin/ at runtime; going through the node_modules symlink makes Vercel
+  // reject the function package ("files in symlinked directories").
+  outputFileTracingIncludes: { "/**/*": ["./node_modules/.pnpm/@sparticuz+chromium@*/node_modules/@sparticuz/chromium/bin/**"] },
   experimental: {
     serverActions: { bodySizeLimit: "60mb" },
   },

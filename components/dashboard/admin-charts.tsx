@@ -1,6 +1,7 @@
 "use client";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRtl } from "@/components/ui/use-rtl";
 
 const COLORS = ["#2a3380", "#38bdf8", "#8a97df", "#0ea5e9", "#4453bd", "#7dd3fc", "#b3bbeb", "#075985"];
 const fmt = (v: unknown) => new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Number(v));
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function AdminCharts({ months, topRemaining, aging, hoursByDept, labels }: Props) {
+  const rtl = useRtl();
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       <Card>
@@ -24,7 +26,7 @@ export function AdminCharts({ months, topRemaining, aging, hoursByDept, labels }
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={months.map((m) => ({ ...m, label: `${m.month.slice(5)}/${m.month.slice(2, 4)}` }))}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e3e6ef" />
-              <XAxis dataKey="label" fontSize={11} />
+              <XAxis dataKey="label" fontSize={11} reversed={rtl} />
               <YAxis fontSize={11} tickFormatter={fmt} orientation="right" />
               <Tooltip formatter={fmt} />
               <Legend />
@@ -45,10 +47,10 @@ export function AdminCharts({ months, topRemaining, aging, hoursByDept, labels }
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={topRemaining} layout="vertical" margin={{ left: 10, right: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e3e6ef" />
-                <XAxis type="number" fontSize={11} tickFormatter={fmt} />
+                <XAxis type="number" fontSize={11} tickFormatter={fmt} reversed={rtl} />
                 <YAxis type="category" dataKey="name" width={160} fontSize={11} orientation="right" />
                 <Tooltip formatter={fmt} />
-                <Bar dataKey="remaining" name={labels.remaining} fill="#4453bd" radius={[0, 3, 3, 0]} />
+                <Bar dataKey="remaining" name={labels.remaining} fill="#4453bd" radius={rtl ? [3, 0, 0, 3] : [0, 3, 3, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -65,7 +67,7 @@ export function AdminCharts({ months, topRemaining, aging, hoursByDept, labels }
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={aging}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e3e6ef" />
-                <XAxis dataKey="bucket" fontSize={11} />
+                <XAxis dataKey="bucket" fontSize={11} reversed={rtl} />
                 <YAxis fontSize={11} tickFormatter={fmt} orientation="right" />
                 <Tooltip formatter={fmt} />
                 <Bar dataKey="amount" name={labels.amount} fill="#0ea5e9" radius={[3, 3, 0, 0]} />

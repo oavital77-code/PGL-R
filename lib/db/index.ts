@@ -25,10 +25,12 @@ function createClient(): Sql {
   const { url } = resolveDatabaseUrl(raw);
   // Transaction-mode pooler: prepare=false (no named statements across server connections) and
   // max_pipeline=1 (one statement in flight per connection – the pooler crossed the parameters
-  // of pipelined statements). Connections are released after every response (release.ts);
-  // idle_timeout is only the fallback for code that runs outside a request.
-  // (max_pipeline is parsed by the driver but absent from its Options type.)
-  const options = { prepare: false, max_pipeline: 1, max: 5, idle_timeout: 5, max_lifetime: 60 * 15, connect_timeout: 10 };
+  // of pipelined statements). Connections are released after every response (release.ts), so
+  // every request opens its own: max=3 keeps that to three handshakes per request, and
+  // connect_timeout=5 turns a stalled handshake into a CONNECT_TIMEOUT the guard retries on a
+  // fresh pool well before its own 8 s limit. idle_timeout is only the fallback for code that
+  // runs outside a request. (max_pipeline is parsed by the driver but absent from its Options type.)
+  const options = { prepare: false, max_pipeline: 1, max: 3, idle_timeout: 5, max_lifetime: 60 * 15, connect_timeout: 5 };
   return postgres(url, options as postgres.Options<Record<string, never>>);
 }
 

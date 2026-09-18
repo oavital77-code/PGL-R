@@ -23,6 +23,16 @@ export interface PendingLike extends PromiseLike<unknown> {
 }
 export type Unsafe = (query: string, params?: unknown[], options?: unknown) => PendingLike;
 
+/**
+ * A statement that failed because its connection could not be opened or died under it never
+ * reached the server, so re-issuing it is as safe as a timeout retry. These are the driver's
+ * own connection error codes; server errors (syntax, constraint …) are never in this set.
+ */
+const CONNECTION_FAILURES = new Set(["CONNECT_TIMEOUT", "CONNECTION_CLOSED", "CONNECTION_DESTROYED", "CONNECTION_ENDED", "ECONNRESET", "ECONNREFUSED", "EPIPE", "ETIMEDOUT"]);
+export function isConnectionFailure(e: unknown): boolean {
+  return typeof e === "object" && e !== null && "code" in e && CONNECTION_FAILURES.has(String((e as { code: unknown }).code));
+}
+
 /** SELECT / WITH … SELECT statements are safe to send twice; anything else is not. */
 export function isRetriableRead(query: string): boolean {
   return /^\s*(select|with)\b/i.test(query);
@@ -56,13 +66,21 @@ export function guardUnsafe(current: () => { unsafe: Unsafe }, reset: (reason: s
   const attempt = (query: string, params?: unknown[], options?: unknown, retriesLeft = 1): PendingLike => {
     const pending = current().unsafe(query, params, options);
     const label = query.replace(/\s+/g, " ").trim().slice(0, 120);
+    // Query.cancel() returns null (the driver's cancel promise is discarded), so nothing here
+    // may assume a promise back. Throwing from a timer callback would crash the process.
     const lost = () => {
-      pending.cancel?.().catch(() => undefined);
+      try {
+        const r = pending.cancel?.() as unknown;
+        if (r && typeof (r as Promise<unknown>).catch === "function") (r as Promise<unknown>).catch(() => undefined);
+      } catch {
+        // already gone
+      }
     };
     const run = <T>(p: PromiseLike<T>, method?: keyof PendingLike): Promise<T> =>
       timed(p, timeoutMs, lost, label).catch(async (e: unknown) => {
-        if (!(e instanceof DbTimeoutError)) throw e;
-        await reset("query timeout");
+        const reason = e instanceof DbTimeoutError ? "query timeout" : isConnectionFailure(e) ? `connection ${(e as { code: string }).code}` : null;
+        if (!reason) throw e;
+        await reset(reason);
         if (retriesLeft > 0 && isRetriableRead(query)) {
           const again = attempt(query, params, options, retriesLeft - 1);
           const fn = method ? (again[method] as (() => PromiseLike<T>) | undefined) : undefined;

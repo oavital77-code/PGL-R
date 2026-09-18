@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { DbTimeoutError, guardUnsafe, isRetriableRead, type PendingLike } from "@/lib/db/guard";
+import { DbTimeoutError, guardUnsafe, isConnectionFailure, isRetriableRead, type PendingLike } from "@/lib/db/guard";
 
+/** Mirrors the driver: Query.cancel() returns null, never a promise. */
 function hanging(): PendingLike {
   const p = new Promise<never>(() => undefined) as Promise<never> & PendingLike;
-  p.cancel = () => Promise.resolve();
+  p.cancel = (() => null) as unknown as () => Promise<unknown>;
+  p.values = () => p;
+  return p;
+}
+function failing(code: string): PendingLike {
+  const p = Promise.reject(Object.assign(new Error(code), { code })) as Promise<never> & PendingLike;
+  p.catch(() => undefined);
   p.values = () => p;
   return p;
 }
@@ -62,5 +69,33 @@ describe("query guard", () => {
     const pool = { unsafe: () => Promise.reject(new Error("syntax error")) as unknown as PendingLike };
     const unsafe = guardUnsafe(() => pool, async () => undefined, 30);
     await expect(unsafe("select 1")).rejects.toThrow("syntax error");
+  });
+
+  it("re-issues a read whose connection could not be opened (CONNECT_TIMEOUT) on a fresh pool", async () => {
+    let resets = 0;
+    let calls = 0;
+    const pool = { unsafe: () => (++calls === 1 ? failing("CONNECT_TIMEOUT") : answering([{ ok: 1 }])) };
+    const unsafe = guardUnsafe(() => pool, async () => void resets++, 30);
+    expect(await unsafe("select 1")).toEqual([{ ok: 1 }]);
+    expect(resets).toBe(1);
+    expect(calls).toBe(2);
+  });
+
+  it("never re-issues a write after a connection failure: it resets and surfaces the error", async () => {
+    let resets = 0;
+    let calls = 0;
+    const pool = { unsafe: () => (++calls, failing("CONNECTION_CLOSED")) };
+    const unsafe = guardUnsafe(() => pool, async () => void resets++, 30);
+    await expect(unsafe("update t set x = 1")).rejects.toMatchObject({ code: "CONNECTION_CLOSED" });
+    expect(resets).toBe(1);
+    expect(calls).toBe(1);
+  });
+
+  it("classifies connection failures and nothing else", () => {
+    expect(isConnectionFailure(Object.assign(new Error(), { code: "CONNECT_TIMEOUT" }))).toBe(true);
+    expect(isConnectionFailure(Object.assign(new Error(), { code: "ECONNRESET" }))).toBe(true);
+    expect(isConnectionFailure(Object.assign(new Error(), { code: "42601" }))).toBe(false);
+    expect(isConnectionFailure(new Error("x"))).toBe(false);
+    expect(isConnectionFailure(null)).toBe(false);
   });
 });

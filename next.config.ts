@@ -30,6 +30,11 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   serverExternalPackages: ["@sparticuz/chromium", "playwright-core", "exceljs", "postgres"],
+  // @sparticuz/chromium ships its browser as brotli archives in bin/; they are opened at
+  // runtime, so file tracing never sees them and the deployed function had no browser
+  // ("The input directory …/@sparticuz/chromium/bin does not exist"). Ship them with every
+  // route: invoice PDFs come from a server action on /invoices/[id], report PDFs from /reports.
+  outputFileTracingIncludes: { "/**/*": ["./node_modules/@sparticuz/chromium/bin/**"] },
   experimental: {
     serverActions: { bodySizeLimit: "60mb" },
   },

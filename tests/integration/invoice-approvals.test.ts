@@ -36,7 +36,7 @@ describe.skipIf(!process.env.DATABASE_URL)("invoice approval chain", () => {
       const lines = await buildMilestoneLines(tx, ctx!, 1);
       await tx.insert(s.invoiceLines).values(lines.map((l) => ({ ...l, invoiceId: inv!.id, createdBy: u.admin })));
       const first = lines[0]!;
-      await tx.update(s.invoiceLines).set({ progressPctThis: "100", amountThis: first.stageAmount }).where(and(eq(s.invoiceLines.invoiceId, inv!.id), eq(s.invoiceLines.milestoneId, first.milestoneId!)));
+      await tx.update(s.invoiceLines).set({ progressPctThis: "100", amountThis: first.stageAmount ?? "0" }).where(and(eq(s.invoiceLines.invoiceId, inv!.id), eq(s.invoiceLines.milestoneId, first.milestoneId!)));
       await recomputeInvoice(tx, inv!.id);
       return inv!.id;
     });

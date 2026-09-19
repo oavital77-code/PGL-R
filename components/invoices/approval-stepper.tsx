@@ -55,7 +55,7 @@ export function ApprovalStepper({ status, chain, plannedStations, step, decision
   return (
     <ol aria-label={t("stepper")} className="flex flex-wrap items-start gap-y-3 rounded-lg border border-border bg-card p-3">
       {nodes.map((n, i) => (
-        <li key={i} className="flex min-w-[110px] flex-1 items-start gap-2">
+        <li key={i} className="flex min-w-[140px] flex-1 items-start gap-2">
           <span
             className={cn(
               "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs",
@@ -69,7 +69,7 @@ export function ApprovalStepper({ status, chain, plannedStations, step, decision
           </span>
           <span className="min-w-0">
             <span className={cn("block text-sm", n.state === "current" ? "font-semibold text-primary" : n.state === "todo" ? "text-muted-foreground" : "")}>{n.label}</span>
-            {n.sub ? <span className="block truncate text-xs text-muted-foreground">{n.sub}</span> : null}
+            {n.sub ? <span className="block text-xs text-muted-foreground">{n.sub}</span> : null}
           </span>
         </li>
       ))}

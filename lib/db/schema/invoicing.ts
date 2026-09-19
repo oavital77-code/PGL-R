@@ -71,6 +71,10 @@ export const invoices = pgTable(
     withholdingPct: numeric("withholding_pct", { precision: 5, scale: 2 }),
     expectedReceipt: numeric("expected_receipt", { precision: 12, scale: 2 }),
     // workflow
+    // approval chain (customer decision 18/09/2026): the stations resolved when the draft was
+    // submitted, and the 1-based station now waiting (0 = not in approval)
+    approvalChain: jsonb("approval_chain").$type<ApprovalStation[]>(),
+    approvalStep: integer("approval_step").notNull().default(0),
     approvedBy: uuid("approved_by").references(() => users.id),
     approvedAt: ts("approved_at"),
     signedBy: uuid("signed_by").references(() => users.id),
@@ -92,6 +96,31 @@ export const invoices = pgTable(
     index("invoices_date_idx").on(t.invoiceDate),
     unique("invoices_sequence").on(t.sequenceYear, t.sequenceNo),
   ],
+);
+
+/** One station of an invoice's approval chain, resolved to a user at submission time. */
+export interface ApprovalStation {
+  key: string;
+  name: string;
+  userId: string;
+  userName: string;
+}
+
+/** Every decision taken on an invoice's approval chain (history + who is waiting). */
+export const invoiceApprovals = pgTable(
+  "invoice_approvals",
+  {
+    ...baseColumns,
+    invoiceId: uuid("invoice_id").notNull().references(() => invoices.id, { onDelete: "cascade" }),
+    step: integer("step").notNull(),
+    stationKey: text("station_key").notNull(),
+    stationName: text("station_name").notNull(),
+    userId: uuid("user_id").notNull().references(() => users.id),
+    decision: approvalDecisionEnum("decision").notNull(),
+    decidedAt: ts("decided_at").notNull().defaultNow(),
+    comment: text("comment"),
+  },
+  (t) => [index("invoice_approvals_invoice_idx").on(t.invoiceId)],
 );
 
 export const invoiceLines = pgTable(

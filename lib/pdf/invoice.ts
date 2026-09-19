@@ -16,7 +16,8 @@ export interface SignerInfo {
   id: string;
   name: string;
   title: string;
-  signaturePath: string;
+  /** null = manual signature mode: name and title over a blank line, signed by hand */
+  signaturePath: string | null;
 }
 
 /** Load everything for the invoice PDF and render HTML per spec §11.8. */
@@ -46,7 +47,7 @@ export async function buildInvoiceHtml(invoiceId: string, opts: { draft: boolean
     if (doc) iso = `data:${doc.mimeType};base64,${(await downloadBytes(doc.storageBucket, doc.storagePath)).toString("base64")}`;
   }
   let signature = "";
-  if (opts.signer) {
+  if (opts.signer?.signaturePath) {
     try {
       signature = `data:image/png;base64,${(await downloadBytes("signatures", opts.signer.signaturePath)).toString("base64")}`;
     } catch {
@@ -132,7 +133,7 @@ h2{font-size:14pt;color:#2a3380;margin:12px 0 6px}h3{font-size:11.5pt;margin:12p
 table{width:100%;border-collapse:collapse;font-size:10pt;margin-bottom:6px}th,td{border:1px solid #ccc;padding:4px 6px;text-align:center;direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
 th{background:#eef0fb;color:#1f2660}td.t,th.t{text-align:right;direction:rtl}tfoot td{font-weight:700;background:#f6f7fb}
 .summary{width:60%;margin-inline-start:auto;margin-top:12px}.summary td{text-align:left}.summary td.t{text-align:right}.summary tr.strong td{font-weight:700}.summary tr.total td{font-weight:800;background:#eef0fb;font-size:11.5pt}
-.sig{margin-top:24px;display:flex;justify-content:space-between;align-items:flex-end}.sig img{max-height:70px}.sig .name{font-weight:700}
+.sig{margin-top:24px;display:flex;justify-content:space-between;align-items:flex-end}.sig img{max-height:70px}.sig .name{font-weight:700}.sig .sigline{width:200px;height:48px;border-bottom:1px solid #000;color:#666;font-size:10px;display:flex;align-items:flex-end}
 .footer{position:fixed;bottom:-12mm;left:0;right:0;font-size:8.5pt;color:#555;border-top:1px solid #ccc;padding-top:4px;display:flex;justify-content:space-between;align-items:center}
 .watermark{position:fixed;top:40%;left:10%;right:10%;text-align:center;font-size:48pt;color:rgba(220,38,38,.18);transform:rotate(-20deg);font-weight:800;pointer-events:none}
 .page-break{page-break-before:always}.intro{margin:6px 0 10px}.bank{font-size:9.5pt;margin-top:10px;color:#333}
@@ -152,7 +153,7 @@ ${tables}${extrasTable}
 <table class="summary">${summaryRows.join("")}</table>
 <div class="bank">${T.payment_terms}: ${formatDate(inv.dueDate)}${bank.bank ? ` · ${T.bank_details}: ${esc(bank.bank)} ${T.branch} ${esc(bank.branch)} ${T.account} <span dir="ltr">${esc(bank.account)}</span> ${bank.beneficiary ? `(${esc(bank.beneficiary)})` : ""}` : ""}</div>
 ${inv.notes ? `<p class="intro">${esc(inv.notes)}</p>` : ""}
-${opts.signer ? `<div class="sig"><div><div class="name">${esc(opts.signer.name)}${opts.signer.title ? `, ${esc(opts.signer.title)}` : ""}</div><div>${formatDate(new Date())}</div></div>${signature ? `<img src="${signature}" alt="signature">` : ""}</div>` : ""}
+${opts.signer ? `<div class="sig"><div><div class="name">${esc(opts.signer.name)}${opts.signer.title ? `, ${esc(opts.signer.title)}` : ""}</div><div>${formatDate(new Date())}</div></div>${signature ? `<img src="${signature}" alt="signature">` : `<div class="sigline">${T.signature}</div>`}</div>` : ""}
 ${appendix}
 <div class="footer"><div>${esc(company.name)} · ${esc(company.address)} · ${T.phone} <span dir="ltr">${esc(company.phone)}</span>${company.fax ? ` · ${T.fax} <span dir="ltr">${esc(company.fax)}</span>` : ""} · <span dir="ltr">${esc(company.website)}</span> · <span dir="ltr">${esc(company.email)}</span>${company.pdf_footer_text ? ` · ${esc(company.pdf_footer_text)}` : ""}</div>${iso ? `<img src="${iso}" style="max-height:28px" alt="ISO">` : ""}</div>
 </body></html>`;

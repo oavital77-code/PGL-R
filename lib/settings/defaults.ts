@@ -85,6 +85,25 @@ export const hoursSchema = z.object({
   max_minutes_per_day: z.number().int().default(1440),
 });
 
+/**
+ * One station of the customer-invoice approval chain (customer decision 18/09/2026, see
+ * DEVIATIONS.md). `project_manager` resolves to the invoice's project manager when the draft
+ * is submitted; `user` is a fixed person chosen here.
+ */
+export const approvalStationSchema = z.object({
+  key: z.string().min(1),
+  name: z.string().min(1),
+  kind: z.enum(["project_manager", "user"]),
+  user_id: z.string().nullable().default(null),
+});
+export type ApprovalStationSetting = z.infer<typeof approvalStationSchema>;
+
+export const DEFAULT_APPROVAL_STATIONS: ApprovalStationSetting[] = [
+  { key: "project_manager", name: "מנהל פרויקט", kind: "project_manager", user_id: null },
+  { key: "economist", name: "כלכלן", kind: "user", user_id: null },
+  { key: "ceo", name: "מנכ\"ל", kind: "user", user_id: null },
+];
+
 export const invoicesSchema = z.object({
   default_payment_terms_days: z.number().int().default(30),
   retainer_billing_day: z.number().int().min(1).max(28).default(1),
@@ -97,6 +116,11 @@ export const invoicesSchema = z.object({
   attach_hours_appendix: z.boolean().default(true),
   show_withholding: z.boolean().default(true),
   show_retention: z.boolean().default(true),
+  /** ordered approval stations; an empty list means a draft is approved on submission */
+  approval_stations: z.array(approvalStationSchema).default(DEFAULT_APPROVAL_STATIONS),
+  /** manual: the PDF prints the signer's name and title over a blank line, signed by hand;
+   *  digital: the signer's uploaded signature image is embedded (requires an image) */
+  signature_mode: z.enum(["manual", "digital"]).default("manual"),
 });
 
 export const suppliersSchema = z.object({

@@ -172,14 +172,16 @@
     "chart_sub_vs_rec": "Submitted vs receipts – 12 months",
     "chart_top_remaining": "Top 10 projects by remaining balance",
     "chart_aging": "Receivables aging",
-    "chart_hours_dept": "Hours by department this month"
+    "chart_hours_dept": "Hours by department this month",
+    "my_approvals": "Waiting for your approval",
+    "approvals_none": "Nothing is waiting for you"
   },
   "invoices": {
     "status": {
       "draft": "Draft",
       "pending_approval": "Pending approval",
       "approved": "Approved",
-      "signed": "Signed",
+      "signed": "Issued",
       "sent": "Sent",
       "partially_paid": "Partially paid",
       "paid": "Paid",
@@ -275,7 +277,7 @@
       "consistency": "Warning: current total differs from the sum of lines by {diff}",
       "submit": "Submit for approval",
       "approve": "Approve",
-      "sign": "Sign",
+      "sign": "Sign digitally",
       "send": "Send to client",
       "cancel": "Cancel invoice",
       "back_to_draft": "Back to draft",
@@ -300,7 +302,27 @@
       "credit_pct": "% to credit",
       "credit_amount": "Amount to credit",
       "credit_select": "Select lines to credit",
-      "history": "History"
+      "history": "History",
+      "reject": "Reject",
+      "reject_title": "Reject invoice",
+      "reject_reason": "Reason (sent to the invoice creator)",
+      "approve_comment": "Comment (optional)",
+      "issue": "Issue invoice",
+      "stepper": "Approval path",
+      "approvals_history": "Approval history",
+      "station": "Station",
+      "decision": "Decision",
+      "decided_by": "By",
+      "decision_approved": "Approved",
+      "decision_rejected": "Rejected",
+      "rejected_notice": "Returned to draft: rejected by {name} ({station}) – {reason}",
+      "waiting_here": "Waiting for your approval",
+      "step_draft": "Draft",
+      "step_approved": "Approved",
+      "step_issued": "Issued",
+      "step_sent": "Sent",
+      "step_paid": "Paid",
+      "no_decisions": "No decisions yet"
     },
     "not_client_contract": "Invoices can only be issued for client contracts",
     "not_editable": "Invoice is not a draft",
@@ -319,7 +341,11 @@
     "kinds": {
       "proforma": "Proforma invoice",
       "credit": "Credit note"
-    }
+    },
+    "waiting_for": "Waiting for: {station}",
+    "no_project_manager": "The project has no project manager – set one on the project and submit again",
+    "station_without_user": "An approval station has no user – Settings → Invoices → Approval stations",
+    "not_your_turn": "This invoice is not waiting for your approval"
   },
   "settings": {
     "title": "Settings",
@@ -514,7 +540,22 @@
       "grouping_employee": "By employee",
       "attach_hours_appendix": "Attach hours appendix to PDF",
       "show_withholding": "Show withholding tax on PDF",
-      "show_retention": "Show retention on PDF"
+      "show_retention": "Show retention on PDF",
+      "approval_stations": "Invoice approval stations",
+      "stations_hint": "An invoice passes the stations in order; at each one the approver may approve or return it to draft with a reason. An empty list approves on submission.",
+      "station_name": "Station name",
+      "station_kind": "Who approves",
+      "kind_project_manager": "The invoice's project manager",
+      "kind_user": "A fixed user",
+      "station_user": "User",
+      "add_station": "Add station",
+      "remove_station": "Remove",
+      "move_up": "Earlier",
+      "move_down": "Later",
+      "signature_mode": "How invoices are signed",
+      "mode_manual": "Manual – name and title printed, signed by hand",
+      "mode_digital": "Digital – the signature image is embedded in the PDF",
+      "signature_mode_hint": "Digital mode requires an admin signer with a signature image (Settings → Signatures)."
     },
     "suppliers": {
       "approver_user_ids": "Supplier invoice approvers",
@@ -1229,7 +1270,8 @@
     "hours_appendix": "Hours appendix",
     "employee": "Employee",
     "page": "Page",
-    "of": "of"
+    "of": "of",
+    "signature": "Signature"
   },
   "receipts": {
     "title": "Receipts",

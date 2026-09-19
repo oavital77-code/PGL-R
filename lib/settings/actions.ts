@@ -22,6 +22,15 @@ const list = (v: unknown) =>
       ? v
       : [];
 const bool = (v: unknown) => v === "on" || v === "true" || v === true || v === "1";
+/** A structured field posted by a client editor as JSON; the schema validates the shape. */
+const json = (v: string, fallback: unknown) => {
+  if (!v) return fallback;
+  try {
+    return JSON.parse(v) as unknown;
+  } catch {
+    return fallback;
+  }
+};
 const num = (v: unknown) => (v === "" || v === null || v === undefined ? undefined : Number(v));
 
 /** FormData → partial setting object, per key (spec §6.3 shapes). */
@@ -85,6 +94,8 @@ function formToSetting(key: SettingsKey, fd: FormData): unknown {
         attach_hours_appendix: bool(g("attach_hours_appendix")),
         show_withholding: bool(g("show_withholding")),
         show_retention: bool(g("show_retention")),
+        approval_stations: json(s("approval_stations_json"), []),
+        signature_mode: s("signature_mode") || "manual",
       };
     case "suppliers":
       return {

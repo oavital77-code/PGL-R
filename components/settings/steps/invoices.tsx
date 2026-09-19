@@ -9,11 +9,13 @@ import { Field } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { ApprovalStationsEditor } from "../approval-stations-editor";
 
 export async function InvoicesStep() {
-  const [s, admins, t] = await Promise.all([
+  const [s, admins, everyone, t] = await Promise.all([
     getSetting("invoices"),
     db.select({ id: users.id, first: users.firstName, last: users.lastName }).from(users).where(and(eq(users.role, "admin"), eq(users.isActive, true), isNull(users.deletedAt))),
+    db.select({ id: users.id, first: users.firstName, last: users.lastName }).from(users).where(and(eq(users.isActive, true), isNull(users.deletedAt))).orderBy(users.firstName, users.lastName),
     getTranslations("settings.invoices"),
   ]);
   return (
@@ -53,10 +55,16 @@ export async function InvoicesStep() {
           <Field label={t("default_notes")} htmlFor="dn">
             <Textarea id="dn" name="default_notes" defaultValue={s.default_notes} rows={2} />
           </Field>
+          <Field label={t("approval_stations")}>
+            <ApprovalStationsEditor initial={s.approval_stations} users={everyone.map((u) => ({ id: u.id, name: `${u.first} ${u.last}` }))} />
+          </Field>
+          <Field label={t("signature_mode")} htmlFor="sm" hint={t("signature_mode_hint")}>
+            <Select id="sm" name="signature_mode" defaultValue={s.signature_mode} className="max-w-md">
+              <option value="manual">{t("mode_manual")}</option>
+              <option value="digital">{t("mode_digital")}</option>
+            </Select>
+          </Field>
           <div className="grid gap-2 md:grid-cols-2">
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" name="require_second_approval" defaultChecked={s.require_second_approval} /> {t("require_second_approval")}
-            </label>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" name="attach_hours_appendix" defaultChecked={s.attach_hours_appendix} /> {t("attach_hours_appendix")}
             </label>

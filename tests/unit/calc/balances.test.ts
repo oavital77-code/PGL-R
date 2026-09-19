@@ -69,7 +69,7 @@ describe("balances – אדרת ברעננה after partial invoice #1", () => {
     });
     expect(signed.submitted).toBe(3_780);
   });
-  it("draft / pending / cancelled invoices are ignored", () => {
+  it("a draft and a pending invoice already count as submitted; a cancelled one never does (DEVIATIONS 18/09/2026)", () => {
     const b = computeSubContractBalances({
       totalAmount: 75_600, milestones: tabaMilestones,
       lines: [
@@ -79,9 +79,12 @@ describe("balances – אדרת ברעננה after partial invoice #1", () => {
       ],
       invoices: [{ invoiceId: "c", status: "cancelled", kind: "proforma", subtotalBase: 100, total: 118, allocated: 118 }],
     });
-    expect(b.submitted).toBe(0);
+    expect(b.submitted).toBe(200);
+    expect(b.remaining).toBe(75_400);
     expect(b.paid).toBe(0);
+    expect(isCountedStatus("draft")).toBe(true);
     expect(isCountedStatus("approved")).toBe(true);
+    expect(isCountedStatus("cancelled")).toBe(false);
     expect(kindSign("credit")).toBe(-1);
   });
   it("opening balances", () => {

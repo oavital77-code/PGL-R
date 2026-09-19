@@ -1,6 +1,8 @@
 /**
  * Balance engine (spec §9). All amounts are "base prices" (before index linkage, before VAT).
- * Invoices in draft / pending_approval / cancelled are NOT counted. Credit invoices count negative.
+ * Every invoice that is not cancelled counts – a draft already reduces the remaining balance
+ * (customer decision 18/09/2026, DEVIATIONS.md; the spec counted from approval). Credit
+ * invoices count negative.
  */
 import { dec, money, pctOf, sumMoney } from "./money";
 
@@ -15,7 +17,7 @@ export type InvoiceStatus =
   | "cancelled";
 export type InvoiceKind = "proforma" | "credit";
 
-const COUNTED: ReadonlySet<InvoiceStatus> = new Set(["approved", "signed", "sent", "partially_paid", "paid"]);
+const COUNTED: ReadonlySet<InvoiceStatus> = new Set(["draft", "pending_approval", "approved", "signed", "sent", "partially_paid", "paid"]);
 
 export function isCountedStatus(status: InvoiceStatus): boolean {
   return COUNTED.has(status);

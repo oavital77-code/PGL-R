@@ -1135,10 +1135,46 @@ CREATE TABLE IF NOT EXISTS drizzle."__drizzle_migrations" (
   hash text NOT NULL,
   created_at bigint
 );
+-- ---------------------------------------------------------------- 0002_invoice_approvals
+CREATE TABLE IF NOT EXISTS "invoice_approvals" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"created_by" uuid,
+	"invoice_id" uuid NOT NULL,
+	"step" integer NOT NULL,
+	"station_key" text NOT NULL,
+	"station_name" text NOT NULL,
+	"user_id" uuid NOT NULL,
+	"decision" "approval_decision" NOT NULL,
+	"decided_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"comment" text
+);
+
+ALTER TABLE "invoices" ADD COLUMN IF NOT EXISTS "approval_chain" jsonb;
+ALTER TABLE "invoices" ADD COLUMN IF NOT EXISTS "approval_step" integer DEFAULT 0 NOT NULL;
+ALTER TABLE "invoice_approvals" DROP CONSTRAINT IF EXISTS "invoice_approvals_created_by_users_id_fk";
+ALTER TABLE "invoice_approvals" ADD CONSTRAINT "invoice_approvals_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
+ALTER TABLE "invoice_approvals" DROP CONSTRAINT IF EXISTS "invoice_approvals_invoice_id_invoices_id_fk";
+ALTER TABLE "invoice_approvals" ADD CONSTRAINT "invoice_approvals_invoice_id_invoices_id_fk" FOREIGN KEY ("invoice_id") REFERENCES "public"."invoices"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "invoice_approvals" DROP CONSTRAINT IF EXISTS "invoice_approvals_user_id_users_id_fk";
+ALTER TABLE "invoice_approvals" ADD CONSTRAINT "invoice_approvals_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
+CREATE INDEX IF NOT EXISTS "invoice_approvals_invoice_idx" ON "invoice_approvals" USING btree ("invoice_id");
+-- audit + updated_at triggers and RLS deny-all, as 0001 does for every table that existed then
+CREATE OR REPLACE TRIGGER trg_audit AFTER INSERT OR UPDATE OR DELETE ON invoice_approvals FOR EACH ROW EXECUTE FUNCTION app_audit_trigger();
+CREATE OR REPLACE TRIGGER trg_updated_at BEFORE UPDATE ON invoice_approvals FOR EACH ROW EXECUTE FUNCTION app_set_updated_at();
+ALTER TABLE invoice_approvals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE invoice_approvals FORCE ROW LEVEL SECURITY;
+DO $$ BEGIN
+  DROP POLICY IF EXISTS deny_all ON invoice_approvals;
+  CREATE POLICY deny_all ON invoice_approvals FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
+EXCEPTION WHEN undefined_object THEN NULL; END $$;
+
 INSERT INTO drizzle."__drizzle_migrations" (hash, created_at)
 SELECT v.hash, v.created_at FROM (VALUES
   ('d1947a33563664b4aaee99a6b50e41273ec7b0a11903926b0c1119bc28f8f5a9', 1789328601569::bigint),
-  ('e8e41b9a70b72f70e08340e59d2aca834a10218678d042847522499167714d2d', 1789328646702::bigint)
+  ('e8e41b9a70b72f70e08340e59d2aca834a10218678d042847522499167714d2d', 1789328646702::bigint),
+  ('c9b6f96ab50ac85db4577966d1f2ce519db1dfe55b5b904411b851b779485d91', 1789792263353::bigint)
 ) AS v(hash, created_at)
 WHERE NOT EXISTS (SELECT 1 FROM drizzle."__drizzle_migrations" WHERE hash = v.hash);
 

@@ -4,6 +4,7 @@ import type { NotificationType } from "./service";
 export const NOTIFICATION_EVENTS: { type: NotificationType; in_app: boolean; email: boolean }[] = [
   { type: "invoice.pending_approval", in_app: true, email: true },
   { type: "invoice.approved", in_app: true, email: false },
+  { type: "invoice.rejected", in_app: true, email: true },
   { type: "invoice.signed", in_app: true, email: false },
   { type: "invoice.sent", in_app: true, email: false },
   { type: "invoice.email_failed", in_app: true, email: true },

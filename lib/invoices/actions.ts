@@ -2,7 +2,8 @@
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireCapability } from "@/lib/auth/authorize";
+import { can, requireCapability, requireUser } from "@/lib/auth/authorize";
+import { AuthError } from "@/lib/auth/errors";
 import { BusinessRuleError, NotFoundError, ValidationError } from "@/lib/auth/errors";
 import { runAction, type ActionResult } from "@/lib/actions/result";
 import { db } from "@/lib/db";
@@ -22,6 +23,8 @@ import { allocateInvoiceNumber, nextPartialNumber } from "./numbering";
 import { buildHoursLines, buildMilestoneLines, buildRetainerLines, buildUnitLine, loadSubContractContexts, recomputeInvoice } from "./build";
 import { renderInvoicePdf } from "@/lib/pdf/invoice";
 import { recomputeContractStatus } from "@/lib/contracts/status";
+import { isChainMember } from "./approval-chain";
+import { decide, submitDraft } from "./approvals";
 
 const EDITABLE = new Set(["draft", "pending_approval"]);
 
@@ -289,50 +292,36 @@ export async function removeTimeEntryFromDraftAction(invoiceId: string, entryId:
 
 /* ---------------------------------- workflow ---------------------------------- */
 
-async function assertApprovable(id: string) {
-  const inv = await loadInvoice(id);
-  const lines = await db.select().from(invoiceLines).where(eq(invoiceLines.invoiceId, id));
-  if (!lines.some((l) => Number(l.amountThis) !== 0)) throw new BusinessRuleError("invoices.no_amount");
-  if (inv.indexLinked && (!inv.indexCurrentValue || !inv.indexBaseValue)) throw new BusinessRuleError("invoices.missing_index");
-  return inv;
-}
-
 export async function submitForApprovalAction(id: string): Promise<ActionResult<{ status: string }>> {
   return runAction(async () => {
     const user = await requireCapability("invoices.create");
-    const inv = await assertApprovable(id);
-    if (inv.status !== "draft") throw new BusinessRuleError("invoices.invalid_transition");
-    const settings = await getSettingFresh("invoices");
-    if (!settings.require_second_approval) return approveInternal(id, user.id);
-    await withUser({ userId: user.id }, (tx) => tx.update(invoices).set({ status: "pending_approval" }).where(eq(invoices.id, id)));
-    const approvers = await db.select({ id: users.id }).from(users).where(and(eq(users.role, "admin"), eq(users.isActive, true)));
-    await notifyEvent({ userIds: approvers.map((a) => a.id).filter((a) => a !== user.id), type: "invoice.pending_approval", title: `חשבון ${inv.invoiceNumber} ממתין לאישור`, link: `/invoices/${id}` });
-    rev(id, inv.contractId);
-    return { status: "pending_approval" };
-  });
-}
-
-async function approveInternal(id: string, approverId: string) {
-  const inv = await assertApprovable(id);
-  await withUser({ userId: approverId }, async (tx) => {
-    await recomputeInvoice(tx, id); // final snapshot (spec §11.7)
-    await tx.update(invoices).set({ status: "approved", approvedBy: approverId, approvedAt: new Date() }).where(eq(invoices.id, id));
-    await recomputeContractStatus(tx, inv.contractId);
-  });
-  await notify({ userIds: inv.createdBy && inv.createdBy !== approverId ? [inv.createdBy] : [], type: "invoice.approved", title: `חשבון ${inv.invoiceNumber} אושר`, link: `/invoices/${id}` });
-  // contract progress alerts (spec §13.2) are evaluated by the contract-alerts cron
-  rev(id, inv.contractId);
-  return { status: "approved" };
-}
-
-export async function approveInvoiceAction(id: string): Promise<ActionResult<{ status: string }>> {
-  return runAction(async () => {
-    const user = await requireCapability("invoices.approve");
     const inv = await loadInvoice(id);
-    if (inv.status !== "pending_approval" && inv.status !== "draft") throw new BusinessRuleError("invoices.invalid_transition");
-    const settings = await getSettingFresh("invoices");
-    if (settings.require_second_approval && inv.status === "pending_approval" && inv.createdBy === user.id) throw new BusinessRuleError("invoices.second_approver_required");
-    return approveInternal(id, user.id);
+    const status = await submitDraft(user, id);
+    rev(id, inv.contractId);
+    return { status };
+  });
+}
+
+/** The person at the invoice's current station (or an admin) approves it there. */
+export async function approveInvoiceAction(id: string, comment?: string): Promise<ActionResult<{ status: string }>> {
+  return runAction(async () => {
+    const user = await requireUser();
+    const inv = await loadInvoice(id);
+    const status = await decide(user, id, "approved", comment?.trim() || null);
+    rev(id, inv.contractId);
+    return { status };
+  });
+}
+
+/** Rejection sends the invoice back to draft with the reason; the creator is notified. */
+export async function rejectInvoiceAction(id: string, reason: string): Promise<ActionResult<{ status: string }>> {
+  return runAction(async () => {
+    const user = await requireUser();
+    if (!reason || reason.trim().length < 2) throw new ValidationError("errors.validation", { reason: ["required"] });
+    const inv = await loadInvoice(id);
+    const status = await decide(user, id, "rejected", reason.trim());
+    rev(id, inv.contractId);
+    return { status };
   });
 }
 
@@ -344,10 +333,14 @@ export async function signInvoiceAction(id: string, signerUserId?: string): Prom
     if (inv.status !== "approved") throw new BusinessRuleError("invoices.invalid_transition");
     const settings = await getSettingFresh("invoices");
     const signerId = signerUserId ?? settings.default_signer_user_id ?? user.id;
-    const [signer] = await db.select().from(users).where(eq(users.id, signerId));
-    if (!signer || signer.role !== "admin" || !signer.signatureImagePath) throw new BusinessRuleError("invoices.signer_without_signature");
+    const [signer] = await db.select().from(users).where(and(eq(users.id, signerId), eq(users.isActive, true)));
+    if (!signer) throw new NotFoundError("user");
+    // digital: the stored signature image is embedded and the signer must be an admin who has one;
+    // manual (default): name and title are printed over a blank line and the print is signed by hand
+    const digital = settings.signature_mode === "digital";
+    if (digital && (signer.role !== "admin" || !signer.signatureImagePath)) throw new BusinessRuleError("invoices.signer_without_signature");
     const [contract] = await db.select({ workNumber: projects.workNumber }).from(contracts).innerJoin(projects, eq(projects.id, contracts.projectId)).where(eq(contracts.id, inv.contractId));
-    const pdf = await renderInvoicePdf(id, { draft: false, signer: { id: signer.id, name: `${signer.firstName} ${signer.lastName}`, title: signer.signatureTitle ?? "", signaturePath: signer.signatureImagePath } });
+    const pdf = await renderInvoicePdf(id, { draft: false, signer: { id: signer.id, name: `${signer.firstName} ${signer.lastName}`, title: signer.signatureTitle ?? "", signaturePath: digital ? signer.signatureImagePath : null } });
     const documentId = await withUser({ userId: user.id }, async (tx) => {
       const r = await uploadGenerated({ bucket: "invoices", entityType: "invoice", entityId: id, fileName: `PGL_חשבון_${inv.invoiceNumber}_${contract?.workNumber ?? ""}.pdf`, mime: "application/pdf", bytes: pdf, documentType: "invoice", userId: user.id, pathOverride: `${inv.invoiceDate.slice(0, 4)}/${id}.pdf` }, tx);
       await tx.update(invoices).set({ status: "signed", signedBy: signer.id, signedAt: new Date(), signatureTitleSnapshot: signer.signatureTitle, pdfDocumentId: r.id }).where(eq(invoices.id, id));
@@ -434,7 +427,7 @@ export async function backToDraftAction(id: string): Promise<ActionResult<undefi
     if (inv.status !== "approved" && inv.status !== "signed" && inv.status !== "pending_approval") throw new BusinessRuleError("invoices.invalid_transition");
     await withUser({ userId: user.id }, async (tx) => {
       if (inv.pdfDocumentId) await tx.update(documents).set({ deletedAt: new Date() }).where(eq(documents.id, inv.pdfDocumentId));
-      await tx.update(invoices).set({ status: "draft", approvedBy: null, approvedAt: null, signedBy: null, signedAt: null, signatureTitleSnapshot: null, pdfDocumentId: null }).where(eq(invoices.id, id));
+      await tx.update(invoices).set({ status: "draft", approvalStep: 0, approvalChain: null, approvedBy: null, approvedAt: null, signedBy: null, signedAt: null, signatureTitleSnapshot: null, pdfDocumentId: null }).where(eq(invoices.id, id));
       await recomputeInvoice(tx, id);
       await recomputeContractStatus(tx, inv.contractId);
     });
@@ -506,8 +499,9 @@ export async function createCreditInvoiceAction(input: z.input<typeof creditSche
 /** Preview PDF (draft watermark) – returns the document id of a temporary render. */
 export async function previewInvoicePdfAction(id: string): Promise<ActionResult<{ base64: string }>> {
   return runAction(async () => {
-    await requireCapability("invoices.view");
+    const user = await requireUser();
     const inv = await loadInvoice(id);
+    if (!can(user, "invoices.view") && !isChainMember(inv, user.id)) throw new AuthError("FORBIDDEN");
     const pdf = await renderInvoicePdf(id, { draft: inv.status !== "signed" && inv.status !== "sent" && inv.status !== "partially_paid" && inv.status !== "paid" });
     return { base64: pdf.toString("base64") };
   });

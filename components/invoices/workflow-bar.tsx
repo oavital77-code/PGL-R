@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import * as React from "react";
 import { toast } from "sonner";
-import { approveInvoiceAction, backToDraftAction, cancelInvoiceAction, createCreditInvoiceAction, previewInvoicePdfAction, sendDefaultsAction, sendInvoiceAction, signInvoiceAction, submitForApprovalAction } from "@/lib/invoices/actions";
+import { approveInvoiceAction, backToDraftAction, cancelInvoiceAction, createCreditInvoiceAction, previewInvoicePdfAction, rejectInvoiceAction, sendDefaultsAction, sendInvoiceAction, signInvoiceAction, submitForApprovalAction } from "@/lib/invoices/actions";
 import { ActionButton } from "@/components/shared/action-button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,15 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface Props {
   invoice: { id: string; status: string; kind: "proforma" | "credit"; pdfDocumentId: string | null; hasReceipts: boolean };
-  caps: { create: boolean; approve: boolean; sign: boolean; send: boolean; cancel: boolean; admin: boolean };
+  /** decide: this user is at the invoice's current approval station (or is an admin) */
+  caps: { create: boolean; decide: boolean; sign: boolean; send: boolean; cancel: boolean; admin: boolean };
+  signatureMode: "manual" | "digital";
   signers: { id: string; name: string }[];
   lines: { id: string; description: string; amount: number; type: string }[];
 }
 
 /** Status transitions (spec §11.3). */
-export function WorkflowBar({ invoice, caps, signers, lines }: Props) {
+export function WorkflowBar({ invoice, caps, signatureMode, signers, lines }: Props) {
   const t = useTranslations("invoices.detail");
   const tAll = useTranslations();
   const router = useRouter();
@@ -40,11 +42,16 @@ export function WorkflowBar({ invoice, caps, signers, lines }: Props) {
     <div className="flex flex-wrap items-center gap-2">
       <Button variant="outline" onClick={preview} disabled={pending}><Eye /> {t("preview")}</Button>
       {s === "draft" && caps.create ? <ActionButton action={() => submitForApprovalAction(invoice.id)}><CheckCircle2 /> {t("submit")}</ActionButton> : null}
-      {s === "pending_approval" && caps.approve ? <ActionButton action={() => approveInvoiceAction(invoice.id)}><CheckCircle2 /> {t("approve")}</ActionButton> : null}
+      {s === "pending_approval" && caps.decide ? (
+        <>
+          <ActionButton action={() => approveInvoiceAction(invoice.id)}><CheckCircle2 /> {t("approve")}</ActionButton>
+          <ConfirmDialog title={t("reject_title")} description={t("reject_reason")} requireReason action={(reason) => rejectInvoiceAction(invoice.id, reason)} trigger={<Button variant="outline"><XCircle /> {t("reject")}</Button>} onSuccess={() => router.refresh()} />
+        </>
+      ) : null}
       {s === "approved" && caps.sign ? (
         <span className="inline-flex items-center gap-1">
           <Select value={signer} onChange={(e) => setSigner(e.target.value)} className="w-40"><option value="">{t("signer")}</option>{signers.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</Select>
-          <ActionButton action={() => signInvoiceAction(invoice.id, signer || undefined)}><PenLine /> {t("sign")}</ActionButton>
+          <ActionButton action={() => signInvoiceAction(invoice.id, signer || undefined)}><PenLine /> {signatureMode === "digital" ? t("sign") : t("issue")}</ActionButton>
         </span>
       ) : null}
       {s === "signed" && caps.send ? <SendDialog invoiceId={invoice.id} /> : null}

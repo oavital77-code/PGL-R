@@ -2,7 +2,12 @@ import Link from "next/link";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { can, requireCapability } from "@/lib/auth/authorize";
+import { can, requireUser } from "@/lib/auth/authorize";
+import { AuthError } from "@/lib/auth/errors";
+import { getSetting } from "@/lib/settings/service";
+import { canDecide, currentStation, isChainMember } from "@/lib/invoices/approval-chain";
+import { listDecisions } from "@/lib/invoices/approvals";
+import { ApprovalHistory, ApprovalStepper } from "@/components/invoices/approval-stepper";
 import { db } from "@/lib/db";
 import { clients, contracts, indexValues, invoiceLines, invoices, projects, receiptAllocations, receipts, subContracts, timeEntries, users } from "@/lib/db/schema";
 import { formatDate, formatMoney, formatMonth, formatPct } from "@/lib/i18n/format";
@@ -20,7 +25,8 @@ import { TimeEntriesPanel } from "@/components/invoices/time-entries-panel";
 import { AuditTable } from "@/components/audit/audit-table";
 
 export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
-  const user = await requireCapability("invoices.view");
+  // anyone with invoices.view, plus the people named in this invoice's approval chain
+  const user = await requireUser();
   const { id } = await params;
   const [row] = await db
     .select({ i: invoices, c: contracts, workNumber: projects.workNumber, projectName: projects.name, projectId: projects.id, clientName: clients.name })
@@ -31,7 +37,8 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
     .where(and(eq(invoices.id, id), isNull(invoices.deletedAt)));
   if (!row) notFound();
   const inv = row.i;
-  const [lines, entries, allocs, idxMonths, admins, payers, approver, signer, original, t, tc, tp] = await Promise.all([
+  if (!can(user, "invoices.view") && !isChainMember(inv, user.id)) throw new AuthError("FORBIDDEN");
+  const [lines, entries, allocs, idxMonths, admins, payers, approver, signer, original, t, tc, tp, decisions, settings] = await Promise.all([
     db.select({ l: invoiceLines, scName: subContracts.name, scDefault: subContracts.isDefault, method: subContracts.pricingMethod }).from(invoiceLines).innerJoin(subContracts, eq(subContracts.id, invoiceLines.subContractId)).where(eq(invoiceLines.invoiceId, id)).orderBy(subContracts.numberInContract, invoiceLines.sortOrder),
     db.select({ e: timeEntries, first: users.firstName, last: users.lastName, scName: subContracts.name }).from(timeEntries).innerJoin(users, eq(users.id, timeEntries.userId)).innerJoin(subContracts, eq(subContracts.id, timeEntries.subContractId)).where(and(eq(timeEntries.invoiceId, id), isNull(timeEntries.deletedAt))).orderBy(timeEntries.workDate),
     db.select({ a: receiptAllocations, date: receipts.receiptDate, reference: receipts.reference }).from(receiptAllocations).innerJoin(receipts, eq(receipts.id, receiptAllocations.receiptId)).where(and(eq(receiptAllocations.invoiceId, id), isNull(receiptAllocations.cancelledAt))),
@@ -44,7 +51,11 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
     getTranslations("invoices.detail"),
     getTranslations("common"),
     getTranslations("invoices"),
+    listDecisions(id),
+    getSetting("invoices"),
   ]);
+  const station = currentStation(inv);
+  const lastRejection = inv.status === "draft" ? decisions.filter((d) => d.decision === "rejected").at(-1) : undefined;
   const editable = (inv.status === "draft" || inv.status === "pending_approval") && can(user, "invoices.create");
   const paid = allocs.reduce((a, x) => a + Number(x.a.amount), 0);
   const missingIndex = inv.indexLinked && (!inv.indexCurrentValue || !inv.indexBaseValue);
@@ -54,7 +65,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
       <PageHeader
         title={
           <span>
-            {inv.invoiceKind === "credit" ? tp("kind_credit") : tp("kind_proforma")} <span className="num">{inv.invoiceNumber}</span> <InvoiceStatusBadge status={inv.status} />
+            {inv.invoiceKind === "credit" ? tp("kind_credit") : tp("kind_proforma")} <span className="num">{inv.invoiceNumber}</span> <InvoiceStatusBadge status={inv.status} station={station?.name} />
           </span>
         }
         description={
@@ -66,10 +77,12 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
             {original[0] ? <span>{t("credit_of")} <Link href={`/invoices/${original[0].id}`} className="num text-primary hover:underline">{original[0].n}</Link></span> : null}
           </span>
         }
-        actions={<WorkflowBar invoice={{ id, status: inv.status, kind: inv.invoiceKind, pdfDocumentId: inv.pdfDocumentId, hasReceipts: paid > 0 }} caps={{ create: can(user, "invoices.create"), approve: can(user, "invoices.approve"), sign: can(user, "invoices.sign"), send: can(user, "invoices.send"), cancel: can(user, "invoices.cancel"), admin: user.role === "admin" }} signers={admins.filter((a) => a.sig).map((a) => ({ id: a.id, name: `${a.first} ${a.last}` }))} lines={lines.map((l) => ({ id: l.l.id, description: l.l.description ?? "", amount: Number(l.l.amountThis), type: l.l.lineType }))} />}
+        actions={<WorkflowBar invoice={{ id, status: inv.status, kind: inv.invoiceKind, pdfDocumentId: inv.pdfDocumentId, hasReceipts: paid > 0 }} caps={{ create: can(user, "invoices.create"), decide: canDecide(inv, user), sign: can(user, "invoices.sign"), send: can(user, "invoices.send"), cancel: can(user, "invoices.cancel"), admin: user.role === "admin" }} signatureMode={settings.signature_mode} signers={admins.filter((a) => settings.signature_mode === "manual" || a.sig).map((a) => ({ id: a.id, name: `${a.first} ${a.last}` }))} lines={lines.map((l) => ({ id: l.l.id, description: l.l.description ?? "", amount: Number(l.l.amountThis), type: l.l.lineType }))} />}
       />
       {missingIndex ? <Alert variant="destructive" className="mb-4"><AlertDescription>{t("missing_index")} <Link href="/settings/index" className="underline">/settings/index</Link></AlertDescription></Alert> : null}
       {Math.abs(consistency) > 0.01 ? <Alert variant="warning" className="mb-4"><AlertDescription>{t("consistency", { diff: formatMoney(consistency) })}</AlertDescription></Alert> : null}
+      {lastRejection ? <Alert variant="destructive" className="mb-4"><AlertDescription>{t("rejected_notice", { name: `${lastRejection.first} ${lastRejection.last}`, station: lastRejection.stationName, reason: lastRejection.comment ?? "" })}</AlertDescription></Alert> : null}
+      {inv.invoiceKind === "proforma" ? <div className="mb-5"><ApprovalStepper status={inv.status} chain={inv.approvalChain} plannedStations={settings.approval_stations.map((s) => s.name)} step={inv.approvalStep} decisions={decisions} /></div> : null}
       <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
         <div className="space-y-5">
           <Tabs defaultValue="lines">
@@ -114,6 +127,9 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
               </Table>
             </TabsContent>
             <TabsContent value="history">
+              <h3 className="mb-2 text-sm font-semibold">{t("approvals_history")}</h3>
+              <ApprovalHistory decisions={decisions} />
+              <h3 className="mb-2 mt-5 text-sm font-semibold">{t("history")}</h3>
               <AuditTable filter={{ recordIds: [id, ...lines.map((l) => l.l.id)], limit: 200 }} compact />
             </TabsContent>
           </Tabs>

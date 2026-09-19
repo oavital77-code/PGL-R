@@ -6,6 +6,7 @@ import { notifications, users } from "@/lib/db/schema";
 export type NotificationType =
   | "invoice.pending_approval"
   | "invoice.approved"
+  | "invoice.rejected"
   | "invoice.signed"
   | "invoice.sent"
   | "invoice.email_failed"

@@ -172,14 +172,16 @@
     "chart_sub_vs_rec": "הוגש מול תקבולים – 12 חודשים",
     "chart_top_remaining": "10 הפרויקטים עם היתרה הגדולה",
     "chart_aging": "גיול חובות",
-    "chart_hours_dept": "שעות לפי מחלקה החודש"
+    "chart_hours_dept": "שעות לפי מחלקה החודש",
+    "my_approvals": "ממתינים לאישורך",
+    "approvals_none": "אין חשבונות שממתינים לך"
   },
   "invoices": {
     "status": {
       "draft": "טיוטה",
       "pending_approval": "ממתין לאישור",
       "approved": "מאושר",
-      "signed": "חתום",
+      "signed": "הופק",
       "sent": "נשלח",
       "partially_paid": "שולם חלקית",
       "paid": "שולם",
@@ -275,7 +277,7 @@
       "consistency": "אזהרה: סה\"כ חשבון נוכחי שונה מסכום השורות ב-{diff}",
       "submit": "שלח לאישור",
       "approve": "אשר",
-      "sign": "חתום",
+      "sign": "חתום דיגיטלית",
       "send": "שלח ללקוח",
       "cancel": "בטל חשבון",
       "back_to_draft": "החזר לטיוטה",
@@ -300,7 +302,27 @@
       "credit_pct": "% לזיכוי",
       "credit_amount": "סכום לזיכוי",
       "credit_select": "בחר שורות לזיכוי",
-      "history": "היסטוריה"
+      "history": "היסטוריה",
+      "reject": "דחה",
+      "reject_title": "דחיית חשבון",
+      "reject_reason": "נימוק הדחייה (יישלח ליוצר החשבון)",
+      "approve_comment": "הערה (לא חובה)",
+      "issue": "הפק חשבון עסקה",
+      "stepper": "מסלול האישור",
+      "approvals_history": "היסטוריית אישורים",
+      "station": "תחנה",
+      "decision": "החלטה",
+      "decided_by": "ע\"י",
+      "decision_approved": "אושר",
+      "decision_rejected": "נדחה",
+      "rejected_notice": "החשבון הוחזר לטיוטה: נדחה ע\"י {name} ({station}) – {reason}",
+      "waiting_here": "ממתין לאישורך",
+      "step_draft": "טיוטה",
+      "step_approved": "מאושר",
+      "step_issued": "הופק",
+      "step_sent": "נשלח ללקוח",
+      "step_paid": "שולם",
+      "no_decisions": "טרם התקבלו החלטות"
     },
     "not_client_contract": "ניתן להפיק חשבון רק לחוזה לקוח",
     "not_editable": "החשבון אינו בטיוטה",
@@ -319,7 +341,11 @@
     "kinds": {
       "proforma": "חשבון עסקה",
       "credit": "זיכוי"
-    }
+    },
+    "waiting_for": "ממתין ל: {station}",
+    "no_project_manager": "לפרויקט לא מוגדר מנהל פרויקט – הגדר אותו בכרטיס הפרויקט ושלח שוב",
+    "station_without_user": "לאחת מתחנות האישור לא נבחר משתמש – הגדרות ← חשבונות ← תחנות אישור",
+    "not_your_turn": "החשבון אינו ממתין לאישורך"
   },
   "settings": {
     "title": "הגדרות",
@@ -514,7 +540,22 @@
       "grouping_employee": "לפי עובד",
       "attach_hours_appendix": "צרף נספח שעות ל-PDF",
       "show_withholding": "הצג ניכוי במקור ב-PDF",
-      "show_retention": "הצג עכבון ב-PDF"
+      "show_retention": "הצג עכבון ב-PDF",
+      "approval_stations": "תחנות אישור לחשבון עסקה",
+      "stations_hint": "החשבון עובר את התחנות לפי הסדר; בכל תחנה המאשר יכול לאשר או להחזיר לטיוטה עם נימוק. רשימה ריקה = החשבון מאושר מיד עם השליחה.",
+      "station_name": "שם התחנה",
+      "station_kind": "מי מאשר",
+      "kind_project_manager": "מנהל הפרויקט של החשבון",
+      "kind_user": "משתמש קבוע",
+      "station_user": "משתמש",
+      "add_station": "הוסף תחנה",
+      "remove_station": "הסר",
+      "move_up": "הקדם",
+      "move_down": "אחר",
+      "signature_mode": "אופן החתימה על החשבון",
+      "mode_manual": "ידני – שם ותפקיד מודפסים, חותמים ביד",
+      "mode_digital": "דיגיטלי – תמונת החתימה מוטבעת ב-PDF",
+      "signature_mode_hint": "במצב דיגיטלי החותם חייב להיות אדמין עם תמונת חתימה (הגדרות ← חתימות)."
     },
     "suppliers": {
       "approver_user_ids": "מאשרי חשבוניות ספק",
@@ -1229,7 +1270,8 @@
     "hours_appendix": "נספח שעות",
     "employee": "עובד",
     "page": "עמוד",
-    "of": "מתוך"
+    "of": "מתוך",
+    "signature": "חתימה"
   },
   "receipts": {
     "title": "תקבולים",

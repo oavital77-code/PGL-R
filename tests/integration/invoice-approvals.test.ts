@@ -5,7 +5,7 @@
  */
 import "dotenv/config";
 import { beforeAll, describe, expect, it } from "vitest";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db, schema as s } from "@/lib/db";
 import { runSeed } from "@/lib/db/seed/run";
 import { withUser } from "@/lib/db/with-user";
@@ -15,6 +15,9 @@ import { decide, listDecisions, resolveChain, submitDraft } from "@/lib/invoices
 import { currentStation } from "@/lib/invoices/approval-chain";
 import { isCountedStatus } from "@/lib/calc/balances";
 import { DEFAULT_APPROVAL_STATIONS } from "@/lib/settings/defaults";
+import { TABA_MILESTONES } from "../fixtures/aderet-raanana";
+
+const WORK_NUMBER = "9001";
 
 describe.skipIf(!process.env.DATABASE_URL)("invoice approval chain", () => {
   let contractId = "";
@@ -46,17 +49,31 @@ describe.skipIf(!process.env.DATABASE_URL)("invoice approval chain", () => {
 
   beforeAll(async () => {
     await runSeed(db);
-    const [p] = await db.select({ id: s.projects.id }).from(s.projects).where(eq(s.projects.workNumber, "3489"));
-    expect(p, "run aderet-balances test first (creates the project)").toBeTruthy();
-    projectId = p!.id;
-    const [c] = await db.select({ id: s.contracts.id }).from(s.contracts).where(and(eq(s.contracts.projectId, projectId), isNull(s.contracts.deletedAt)));
-    contractId = c!.id;
-    const [taba] = await db.select({ id: s.subContracts.id }).from(s.subContracts).where(and(eq(s.subContracts.contractId, contractId), eq(s.subContracts.numberInContract, 1)));
-    tabaId = taba!.id;
-    for (const o of await db.select({ id: s.invoices.id }).from(s.invoices).where(eq(s.invoices.contractId, contractId))) {
-      await db.delete(s.receiptAllocations).where(eq(s.receiptAllocations.invoiceId, o.id));
-      await db.delete(s.invoices).where(eq(s.invoices.id, o.id));
+    // a project of its own (work number 9001), so this file never depends on the order the
+    // suite runs in; a previous run's copy is removed first
+    for (const p of await db.select({ id: s.projects.id }).from(s.projects).where(eq(s.projects.workNumber, WORK_NUMBER))) {
+      for (const c of await db.select({ id: s.contracts.id }).from(s.contracts).where(eq(s.contracts.projectId, p.id))) {
+        for (const i of await db.select({ id: s.invoices.id }).from(s.invoices).where(eq(s.invoices.contractId, c.id))) {
+          await db.delete(s.receiptAllocations).where(eq(s.receiptAllocations.invoiceId, i.id));
+          await db.delete(s.invoices).where(eq(s.invoices.id, i.id));
+        }
+        for (const sc of await db.select({ id: s.subContracts.id }).from(s.subContracts).where(eq(s.subContracts.contractId, c.id))) {
+          await db.delete(s.milestones).where(eq(s.milestones.subContractId, sc.id));
+          await db.delete(s.subContracts).where(eq(s.subContracts.id, sc.id));
+        }
+        await db.delete(s.contracts).where(eq(s.contracts.id, c.id));
+      }
+      await db.delete(s.projects).where(eq(s.projects.id, p.id));
     }
+    const [client] = await db.insert(s.clients).values({ name: "לקוח אישורים (בדיקה)" }).returning({ id: s.clients.id });
+    const [active] = await db.select({ id: s.contractStatuses.id }).from(s.contractStatuses).where(eq(s.contractStatuses.code, "active"));
+    const [project] = await db.insert(s.projects).values({ workNumber: WORK_NUMBER, name: "פרויקט אישורים", clientId: client!.id, statusId: active!.id }).returning({ id: s.projects.id });
+    projectId = project!.id;
+    const [contract] = await db.insert(s.contracts).values({ projectId, direction: "income", clientId: client!.id, numberInProject: 1, name: "חוזה אישורים", statusId: active!.id, signedDate: "2026-01-15" }).returning({ id: s.contracts.id });
+    contractId = contract!.id;
+    const [taba] = await db.insert(s.subContracts).values({ contractId, numberInContract: 1, name: "תב\"ע", pricingMethod: "fixed_price", basePrice: "84000.00", discountPct: "10.00", statusId: active!.id }).returning({ id: s.subContracts.id });
+    tabaId = taba!.id;
+    await db.insert(s.milestones).values(TABA_MILESTONES.map((m, i) => ({ subContractId: tabaId, sortOrder: i + 1, name: m.name, pctOfSubcontract: m.pctOfSubcontract.toFixed(3) })));
     u.admin = await mkUser("אדמין", "admin");
     u.pm = await mkUser("מנהל", "manager");
     u.eco = await mkUser("כלכלן", "employee");

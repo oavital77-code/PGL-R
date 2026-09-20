@@ -50,13 +50,13 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
           {rows.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">{t("empty")}</TableCell></TableRow> : null}
           {rows.map((r) => (
             <TableRow key={r.i.id}>
-              <TableCell className="num"><Link href={`/supplier-invoices/${r.i.id}`} className="font-medium text-primary hover:underline">{r.i.supplierInvoiceNumber}</Link></TableCell>
+              <TableCell className="num-cell"><Link href={`/supplier-invoices/${r.i.id}`} className="font-medium text-primary hover:underline">{r.i.supplierInvoiceNumber}</Link></TableCell>
               <TableCell>{r.supplier}</TableCell>
               <TableCell><Link href={`/contracts/${r.contractId}`} className="hover:underline"><span className="num">{r.workNumber}</span> – {r.contractName}</Link></TableCell>
-              <TableCell className="num">{formatDate(r.i.invoiceDate)}</TableCell>
-              <TableCell className="num">{formatMoney(r.i.amountBeforeVat)}</TableCell>
-              <TableCell className="num">{formatMoney(r.i.total)}</TableCell>
-              <TableCell className="num">{formatPct(r.i.progressPctClaimed)}</TableCell>
+              <TableCell className="num-cell">{formatDate(r.i.invoiceDate)}</TableCell>
+              <TableCell className="num-cell">{formatMoney(r.i.amountBeforeVat)}</TableCell>
+              <TableCell className="num-cell">{formatMoney(r.i.total)}</TableCell>
+              <TableCell className="num-cell">{formatPct(r.i.progressPctClaimed)}</TableCell>
               <TableCell><Badge variant={r.i.status === "approved" || r.i.status === "paid" ? "success" : r.i.status === "rejected" ? "destructive" : "warning"}>{ts(r.i.status)}</Badge></TableCell>
             </TableRow>
           ))}

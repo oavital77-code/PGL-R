@@ -117,9 +117,9 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                   ) : (
                     allocs.map((a) => (
                       <TableRow key={a.a.id}>
-                        <TableCell className="num">{formatDate(a.date)}</TableCell>
-                        <TableCell className="num">{formatMoney(a.a.amount)}</TableCell>
-                        <TableCell className="num">{a.reference ?? "—"}</TableCell>
+                        <TableCell className="num-cell">{formatDate(a.date)}</TableCell>
+                        <TableCell className="num-cell">{formatMoney(a.a.amount)}</TableCell>
+                        <TableCell className="num-cell">{a.reference ?? "—"}</TableCell>
                       </TableRow>
                     ))
                   )}

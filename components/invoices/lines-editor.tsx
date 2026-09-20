@@ -73,13 +73,13 @@ export function LinesEditor({ invoiceId, kind, editable, canExtra, groups }: { i
                   return (
                     <TableRow key={l.id}>
                       <TableCell>{l.description}</TableCell>
-                      <TableCell className="num">{formatPct(l.stagePct, 3)}</TableCell>
-                      <TableCell className="num">{formatMoney(l.stageAmount)}</TableCell>
-                      <TableCell className="num">{formatPct(prev, 3)}</TableCell>
-                      <TableCell className="num">{editable ? <Input type="number" step="0.001" min={kind === "credit" ? -100 : 0} max="100" value={Math.abs(progress) * (kind === "credit" ? -1 : 1)} onChange={(ev) => upd(l.id, { progressPctThis: Math.abs(Number(ev.target.value)) })} className="w-24" /> : formatPct(Number(l.progressPctThis), 3)}</TableCell>
-                      <TableCell className="num">{editable ? <Input type="number" step="0.001" min="0" max="100" value={Number(cum.toFixed(3))} onChange={(ev) => upd(l.id, { cumulativePct: Number(ev.target.value) })} className="w-24" /> : formatPct(l.cumulativePct, 3)}</TableCell>
-                      <TableCell className="num">{formatMoney(Math.abs(amt) * sign)}</TableCell>
-                      <TableCell className="num">{formatMoney((Number(l.stageAmount) * cum) / 100)}</TableCell>
+                      <TableCell className="num-cell">{formatPct(l.stagePct, 3)}</TableCell>
+                      <TableCell className="num-cell">{formatMoney(l.stageAmount)}</TableCell>
+                      <TableCell className="num-cell">{formatPct(prev, 3)}</TableCell>
+                      <TableCell className="num-cell">{editable ? <Input type="number" step="0.001" min={kind === "credit" ? -100 : 0} max="100" value={Math.abs(progress) * (kind === "credit" ? -1 : 1)} onChange={(ev) => upd(l.id, { progressPctThis: Math.abs(Number(ev.target.value)) })} className="w-24" /> : formatPct(Number(l.progressPctThis), 3)}</TableCell>
+                      <TableCell className="num-cell">{editable ? <Input type="number" step="0.001" min="0" max="100" value={Number(cum.toFixed(3))} onChange={(ev) => upd(l.id, { cumulativePct: Number(ev.target.value) })} className="w-24" /> : formatPct(l.cumulativePct, 3)}</TableCell>
+                      <TableCell className="num-cell">{formatMoney(Math.abs(amt) * sign)}</TableCell>
+                      <TableCell className="num-cell">{formatMoney((Number(l.stageAmount) * cum) / 100)}</TableCell>
                     </TableRow>
                   );
                 })}
@@ -87,11 +87,11 @@ export function LinesEditor({ invoiceId, kind, editable, canExtra, groups }: { i
               <TableFooter>
                 <TableRow>
                   <TableCell>{tc("total")}</TableCell>
-                  <TableCell className="num">{formatPct(g.lines.reduce((a, l) => a + Number(l.stagePct), 0), 3)}</TableCell>
-                  <TableCell className="num">{formatMoney(g.lines.reduce((a, l) => a + Number(l.stageAmount), 0))}</TableCell>
+                  <TableCell className="num-cell">{formatPct(g.lines.reduce((a, l) => a + Number(l.stagePct), 0), 3)}</TableCell>
+                  <TableCell className="num-cell">{formatMoney(g.lines.reduce((a, l) => a + Number(l.stageAmount), 0))}</TableCell>
                   <TableCell colSpan={3} />
-                  <TableCell className="num">{formatMoney(g.lines.reduce((a, l) => a + Number(l.amountThis), 0) * sign)}</TableCell>
-                  <TableCell className="num">{formatMoney(g.lines.reduce((a, l) => a + Number(l.cumulativeAmount), 0))}</TableCell>
+                  <TableCell className="num-cell">{formatMoney(g.lines.reduce((a, l) => a + Number(l.amountThis), 0) * sign)}</TableCell>
+                  <TableCell className="num-cell">{formatMoney(g.lines.reduce((a, l) => a + Number(l.cumulativeAmount), 0))}</TableCell>
                 </TableRow>
               </TableFooter>
             </Table>
@@ -110,9 +110,9 @@ export function LinesEditor({ invoiceId, kind, editable, canExtra, groups }: { i
                 {g.lines.map((l) => (
                   <TableRow key={l.id}>
                     <TableCell>{l.description}</TableCell>
-                    <TableCell className="num">{Number(l.hours).toFixed(2)}</TableCell>
-                    <TableCell className="num">{formatMoney(l.hourlyRate)}</TableCell>
-                    <TableCell className="num">{formatMoney(l.amountThis)}</TableCell>
+                    <TableCell className="num-cell">{Number(l.hours).toFixed(2)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(l.hourlyRate)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(l.amountThis)}</TableCell>
                     {editable ? <TableCell><ActionButton action={() => removeLineAction(l.id)} variant="ghost" size="icon" confirm={tc("confirm_delete")}><Trash2 className="h-4 w-4 text-destructive" /></ActionButton></TableCell> : null}
                   </TableRow>
                 ))}
@@ -135,10 +135,10 @@ export function LinesEditor({ invoiceId, kind, editable, canExtra, groups }: { i
                   return (
                     <TableRow key={l.id}>
                       <TableCell>{l.description}</TableCell>
-                      <TableCell className="num">{editable ? <Input type="number" step="0.001" min="0" value={q} onChange={(ev) => upd(l.id, { quantity: Number(ev.target.value) })} className="w-28" /> : Number(l.quantity).toFixed(3)}</TableCell>
-                      <TableCell className="num">{formatMoney(l.unitPrice)}</TableCell>
-                      <TableCell className="num">{(Number(l.cumulativeQuantity) + q).toFixed(3)}</TableCell>
-                      <TableCell className="num">{formatMoney(q * Number(l.unitPrice))}</TableCell>
+                      <TableCell className="num-cell">{editable ? <Input type="number" step="0.001" min="0" value={q} onChange={(ev) => upd(l.id, { quantity: Number(ev.target.value) })} className="w-28" /> : Number(l.quantity).toFixed(3)}</TableCell>
+                      <TableCell className="num-cell">{formatMoney(l.unitPrice)}</TableCell>
+                      <TableCell className="num-cell">{(Number(l.cumulativeQuantity) + q).toFixed(3)}</TableCell>
+                      <TableCell className="num-cell">{formatMoney(q * Number(l.unitPrice))}</TableCell>
                     </TableRow>
                   );
                 })}
@@ -157,7 +157,7 @@ export function LinesEditor({ invoiceId, kind, editable, canExtra, groups }: { i
                 {g.lines.map((l) => (
                   <TableRow key={l.id}>
                     <TableCell>{editable ? <Input value={edits[l.id]?.description ?? l.description ?? ""} onChange={(ev) => upd(l.id, { description: ev.target.value })} /> : l.description}</TableCell>
-                    <TableCell className="num">{editable ? <Input type="number" step="0.01" value={edits[l.id]?.amountThis ?? Number(l.amountThis)} onChange={(ev) => upd(l.id, { amountThis: Number(ev.target.value) })} className="w-32" /> : formatMoney(l.amountThis)}</TableCell>
+                    <TableCell className="num-cell">{editable ? <Input type="number" step="0.01" value={edits[l.id]?.amountThis ?? Number(l.amountThis)} onChange={(ev) => upd(l.id, { amountThis: Number(ev.target.value) })} className="w-32" /> : formatMoney(l.amountThis)}</TableCell>
                     {editable ? <TableCell><ActionButton action={() => removeLineAction(l.id)} variant="ghost" size="icon" confirm={tc("confirm_delete")}><Trash2 className="h-4 w-4 text-destructive" /></ActionButton></TableCell> : null}
                   </TableRow>
                 ))}

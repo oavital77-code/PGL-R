@@ -67,13 +67,13 @@ export default async function ReceiptsPage({ searchParams }: { searchParams: Pro
                 const un = Number(r.r.amount) - Number(r.allocated);
                 return (
                   <TableRow key={r.r.id} className={selected?.r.id === r.r.id ? "bg-brand-50" : ""}>
-                    <TableCell className="num">{formatDate(r.r.receiptDate)}</TableCell>
+                    <TableCell className="num-cell">{formatDate(r.r.receiptDate)}</TableCell>
                     <TableCell><Link href={`/clients/${r.r.clientId}`} className="text-primary hover:underline">{r.clientName}</Link></TableCell>
-                    <TableCell className="num">{formatMoney(r.r.amount)}</TableCell>
-                    <TableCell className="num">{formatMoney(r.allocated)}</TableCell>
-                    <TableCell className="num">{un > 0.005 ? <Badge variant="warning">{formatMoney(un)}</Badge> : "—"}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(r.r.amount)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(r.allocated)}</TableCell>
+                    <TableCell className="num-cell">{un > 0.005 ? <Badge variant="warning">{formatMoney(un)}</Badge> : "—"}</TableCell>
                     <TableCell>{tm(r.r.method)}</TableCell>
-                    <TableCell className="num">{r.r.reference ?? "—"}</TableCell>
+                    <TableCell className="num-cell">{r.r.reference ?? "—"}</TableCell>
                     <TableCell className="text-end whitespace-nowrap">
                       <Link href={`/receipts?receipt=${r.r.id}`} className="text-sm text-primary hover:underline">{t("allocate")}</Link>
                       <span className="ms-2 inline-flex"><ReceiptDialog receipt={r.r} clients={cls} /></span>

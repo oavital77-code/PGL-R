@@ -41,7 +41,7 @@ export function AllocationPanel({ receipt, open, allocations, isAdmin }: { recei
                   return (
                     <TableRow key={i.id}>
                       <TableCell><span className="num">{i.number}</span> <span className="text-xs text-muted-foreground num">{formatDate(i.date)}</span></TableCell>
-                      <TableCell className="num">{formatMoney(due)}</TableCell>
+                      <TableCell className="num-cell">{formatMoney(due)}</TableCell>
                       <TableCell><Input type="number" step="0.01" min="0" max={due} value={amounts[i.id] ?? ""} onChange={(e) => setAmounts((a) => ({ ...a, [i.id]: Number(e.target.value) }))} className="w-28" /></TableCell>
                     </TableRow>
                   );

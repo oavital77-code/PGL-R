@@ -136,14 +136,14 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               ) : (
                 invs.map(({ i }) => (
                   <TableRow key={i.id}>
-                    <TableCell className="num">
+                    <TableCell className="num-cell">
                       <Link href={`/invoices/${i.id}`} className="text-primary hover:underline">
                         {i.invoiceNumber}
                       </Link>
                     </TableCell>
-                    <TableCell className="num">{formatDate(i.invoiceDate)}</TableCell>
-                    <TableCell className="num">{formatDate(i.dueDate)}</TableCell>
-                    <TableCell className="num">{formatMoney(i.total)}</TableCell>
+                    <TableCell className="num-cell">{formatDate(i.invoiceDate)}</TableCell>
+                    <TableCell className="num-cell">{formatDate(i.dueDate)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(i.total)}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">{ti(i.status)}</Badge>
                     </TableCell>
@@ -173,10 +173,10 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               ) : (
                 recs.map((r) => (
                   <TableRow key={r.id}>
-                    <TableCell className="num">{formatDate(r.receiptDate)}</TableCell>
-                    <TableCell className="num">{formatMoney(r.amount)}</TableCell>
+                    <TableCell className="num-cell">{formatDate(r.receiptDate)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(r.amount)}</TableCell>
                     <TableCell>{r.method}</TableCell>
-                    <TableCell className="num">{r.reference ?? "—"}</TableCell>
+                    <TableCell className="num-cell">{r.reference ?? "—"}</TableCell>
                   </TableRow>
                 ))
               )}
@@ -205,11 +205,11 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               ) : (
                 aging.map((r) => (
                   <TableRow key={r.i.id}>
-                    <TableCell className="num">{r.i.invoiceNumber}</TableCell>
-                    <TableCell className="num">{formatDate(r.i.invoiceDate)}</TableCell>
-                    <TableCell className="num">{formatDate(r.i.dueDate)}</TableCell>
-                    <TableCell className="num">{formatMoney(r.i.total)}</TableCell>
-                    <TableCell className="num">{r.days > 0 ? r.days : "—"}</TableCell>
+                    <TableCell className="num-cell">{r.i.invoiceNumber}</TableCell>
+                    <TableCell className="num-cell">{formatDate(r.i.invoiceDate)}</TableCell>
+                    <TableCell className="num-cell">{formatDate(r.i.dueDate)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(r.i.total)}</TableCell>
+                    <TableCell className="num-cell">{r.days > 0 ? r.days : "—"}</TableCell>
                     <TableCell>{r.days > 0 ? <Badge variant={r.days > 90 ? "destructive" : "warning"}>{r.bucket}</Badge> : "—"}</TableCell>
                   </TableRow>
                 ))

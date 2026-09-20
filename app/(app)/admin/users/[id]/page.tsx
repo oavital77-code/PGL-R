@@ -61,8 +61,8 @@ export default async function UserPage({ params }: { params: Promise<{ id: strin
               <TableBody>
                 {costs.map((c) => (
                   <TableRow key={c.id}>
-                    <TableCell className="num">{formatMoney(c.hourlyCost)}</TableCell>
-                    <TableCell className="num">{formatDate(c.effectiveFrom)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(c.hourlyCost)}</TableCell>
+                    <TableCell className="num-cell">{formatDate(c.effectiveFrom)}</TableCell>
                     <TableCell className="text-end">
                       <DeleteCostRateButton id={c.id} userId={row.id} />
                     </TableCell>

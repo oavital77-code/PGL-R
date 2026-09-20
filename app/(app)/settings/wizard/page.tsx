@@ -35,7 +35,7 @@ export default async function WizardPage() {
             const done = ob.completed_steps.includes(s.key);
             return (
               <TableRow key={s.key}>
-                <TableCell className="num">{i + 1}</TableCell>
+                <TableCell className="num-cell">{i + 1}</TableCell>
                 <TableCell className="font-medium">{ts(s.key)}</TableCell>
                 <TableCell>{s.required ? <Badge variant="warning">{t("required")}</Badge> : <Badge variant="muted">{t("optional")}</Badge>}</TableCell>
                 <TableCell>{done ? <Badge variant="success">{t("done")}</Badge> : <Badge variant="outline">{t("pending")}</Badge>}</TableCell>

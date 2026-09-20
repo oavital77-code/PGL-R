@@ -59,12 +59,12 @@ export async function IndexStep() {
               <TableBody>
                 {values.map((v) => (
                   <TableRow key={v.id}>
-                    <TableCell className="num">{formatMonth(v.month)}</TableCell>
-                    <TableCell className="num">{Number(v.value).toFixed(4)}</TableCell>
+                    <TableCell className="num-cell">{formatMonth(v.month)}</TableCell>
+                    <TableCell className="num-cell">{Number(v.value).toFixed(4)}</TableCell>
                     <TableCell>
                       <Badge variant={v.source === "manual" ? "warning" : "secondary"}>{t(`source_${v.source}`)}</Badge>
                     </TableCell>
-                    <TableCell className="num text-xs text-muted-foreground">{v.fetchedAt ? formatDate(v.fetchedAt) : ""}</TableCell>
+                    <TableCell className="num-cell text-xs text-muted-foreground">{v.fetchedAt ? formatDate(v.fetchedAt) : ""}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

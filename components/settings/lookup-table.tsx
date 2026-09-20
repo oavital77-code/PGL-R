@@ -62,9 +62,9 @@ export function LookupTable({ table, rows, title, addLabel, showCode, showTermin
         <TableBody>
           {rows.map((r) => (
             <TableRow key={r.id} className={r.isActive ? "" : "opacity-60"}>
-              <TableCell className="num">{r.sortOrder}</TableCell>
+              <TableCell className="num-cell">{r.sortOrder}</TableCell>
               <TableCell>{r.name}</TableCell>
-              {showCode ? <TableCell className="num text-xs">{r.code}</TableCell> : null}
+              {showCode ? <TableCell className="num-cell text-xs">{r.code}</TableCell> : null}
               {showTerminal ? <TableCell>{r.isTerminal ? <Badge variant="muted">{tl("is_terminal")}</Badge> : null}</TableCell> : null}
               {managers ? <TableCell>{managers.find((m) => m.id === r.managerUserId)?.name ?? "—"}</TableCell> : null}
               <TableCell>

@@ -2,11 +2,12 @@
 import { and, eq, inArray, isNull, max, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireCapability } from "@/lib/auth/authorize";
-import { BusinessRuleError, NotFoundError, ValidationError } from "@/lib/auth/errors";
+import { requireCapability, requireUser } from "@/lib/auth/authorize";
+import { canManageTeam } from "@/lib/auth/project-access";
+import { AuthError, BusinessRuleError, NotFoundError, ValidationError } from "@/lib/auth/errors";
 import { runAction, type ActionResult } from "@/lib/actions/result";
 import { db } from "@/lib/db";
-import { contracts, invoiceLines, invoices, milestones, projectCostEstimates, subContractAssignments, subContracts, timeEntries } from "@/lib/db/schema";
+import { contracts, invoiceLines, invoices, milestones, projectCostEstimates, subContractAssignments, subContracts, timeEntries, projects } from "@/lib/db/schema";
 import { withUser } from "@/lib/db/with-user";
 import { boolFromForm, optionalDate, optionalString, optionalUuid } from "@/lib/utils/zod";
 import { statusIdByCode } from "@/lib/projects/queries";
@@ -218,11 +219,13 @@ export async function applyTemplateAction(subContractId: string, templateId: str
 /** Team assignment (spec §10.6). Removing does not delete existing time entries. */
 export async function setAssignmentsAction(subContractId: string, userIds: string[]): Promise<ActionResult<undefined>> {
   return runAction(async () => {
-    const user = await requireCapability("assignments.manage");
+    const user = await requireUser();
     const ids = z.array(z.uuid()).parse(userIds);
     const [sc] = await db.select({ contractId: subContracts.contractId }).from(subContracts).where(eq(subContracts.id, subContractId));
     if (!sc) throw new NotFoundError("sub_contract");
     const c = await loadContract(sc.contractId);
+    const [project] = await db.select({ projectManagerUserId: projects.projectManagerUserId }).from(projects).where(eq(projects.id, c.projectId));
+    if (!project || !canManageTeam(user, project)) throw new AuthError("FORBIDDEN", "missing capability assignments.manage");
     await withUser({ userId: user.id }, async (tx) => {
       const existing = await tx.select().from(subContractAssignments).where(eq(subContractAssignments.subContractId, subContractId));
       const want = new Set(ids);

@@ -54,8 +54,8 @@ export async function ManagerDashboard({ user }: { user: SessionUser }) {
                           {b.name}
                         </Link>
                       </TableCell>
-                      <TableCell className="num">{b.lastDate ?? "—"}</TableCell>
-                      <TableCell className="num">{b.daysBehind}</TableCell>
+                      <TableCell className="num-cell">{b.lastDate ?? "—"}</TableCell>
+                      <TableCell className="num-cell">{b.daysBehind}</TableCell>
                     </TableRow>
                   ))
                 )}

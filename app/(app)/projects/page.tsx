@@ -93,7 +93,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
               const b = bal.get(r.p.id)?.balances;
               return (
                 <TableRow key={r.p.id}>
-                  <TableCell className="num">
+                  <TableCell className="num-cell">
                     <Link href={`/projects/${r.p.id}`} className="font-medium text-primary hover:underline">
                       {r.p.workNumber}
                     </Link>
@@ -108,10 +108,10 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                   <TableCell>
                     <StatusBadge code={r.status} name={r.statusName} />
                   </TableCell>
-                  <TableCell className="num">{formatMoney(b?.totalAmount)}</TableCell>
-                  <TableCell className="num">{formatMoney(b?.submitted)}</TableCell>
-                  <TableCell className="num">{formatMoney(b?.remaining)}</TableCell>
-                  <TableCell className="num">{b?.progressPct === null || b?.progressPct === undefined ? <Badge variant="muted">—</Badge> : formatPct(b.progressPct)}</TableCell>
+                  <TableCell className="num-cell">{formatMoney(b?.totalAmount)}</TableCell>
+                  <TableCell className="num-cell">{formatMoney(b?.submitted)}</TableCell>
+                  <TableCell className="num-cell">{formatMoney(b?.remaining)}</TableCell>
+                  <TableCell className="num-cell">{b?.progressPct === null || b?.progressPct === undefined ? <Badge variant="muted">—</Badge> : formatPct(b.progressPct)}</TableCell>
                 </TableRow>
               );
             })

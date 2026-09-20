@@ -104,18 +104,18 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
           ) : (
             rows.map((r) => (
               <TableRow key={r.i.id}>
-                <TableCell className="num">
+                <TableCell className="num-cell">
                   <Link href={`/invoices/${r.i.id}`} className="font-medium text-primary hover:underline">{r.i.invoiceNumber}</Link>
                 </TableCell>
                 <TableCell>{r.i.invoiceKind === "credit" ? <Badge variant="warning">{t("kind_credit")}</Badge> : t("kind_proforma")}</TableCell>
-                <TableCell className="num">{formatDate(r.i.invoiceDate)}</TableCell>
+                <TableCell className="num-cell">{formatDate(r.i.invoiceDate)}</TableCell>
                 <TableCell>{r.clientName}</TableCell>
                 <TableCell><span className="num">{r.workNumber}</span> – {r.projectName}</TableCell>
-                <TableCell className="num">{r.i.partialNumber}</TableCell>
-                <TableCell className="num">{formatMoney(r.i.beforeVat)}</TableCell>
-                <TableCell className="num">{formatMoney(r.i.total)}</TableCell>
-                <TableCell className="num">{formatMoney(r.paid)}</TableCell>
-                <TableCell className="num">{formatDate(r.i.dueDate)}</TableCell>
+                <TableCell className="num-cell">{r.i.partialNumber}</TableCell>
+                <TableCell className="num-cell">{formatMoney(r.i.beforeVat)}</TableCell>
+                <TableCell className="num-cell">{formatMoney(r.i.total)}</TableCell>
+                <TableCell className="num-cell">{formatMoney(r.paid)}</TableCell>
+                <TableCell className="num-cell">{formatDate(r.i.dueDate)}</TableCell>
                 <TableCell><InvoiceStatusBadge status={r.i.status} station={currentStation(r.i)?.name} /></TableCell>
               </TableRow>
             ))

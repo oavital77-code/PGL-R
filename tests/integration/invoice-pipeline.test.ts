@@ -107,6 +107,11 @@ describe.skipIf(!process.env.DATABASE_URL)("invoice pipeline – חשבון חל
     expect(html).toContain("8,920.80");
     expect(html).toContain("טיוטה");
     const pdf = await renderInvoicePdf(invoiceId, { draft: true });
+    if (process.env.DEMO_PDF_OUT) {
+      const fs = await import("node:fs");
+      fs.writeFileSync(process.env.DEMO_PDF_OUT, pdf);
+      fs.writeFileSync(process.env.DEMO_PDF_OUT.replace(/\.pdf$/, ".html"), await buildInvoiceHtml(invoiceId, { draft: true, signer: { id: "x", name: "אור אביטל", title: "מנכ\"ל", signaturePath: null } }));
+    }
     expect(pdf.subarray(0, 4).toString()).toBe("%PDF");
     expect(pdf.length).toBeGreaterThan(10_000);
   }, 120_000);

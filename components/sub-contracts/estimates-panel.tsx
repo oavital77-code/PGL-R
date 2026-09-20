@@ -53,8 +53,8 @@ export function EstimatesPanel({ subContractId, rows, canEdit }: { subContractId
             rows.map((r) => (
               <TableRow key={r.id}>
                 <TableCell>{t(`types.${r.estimateType}` as "types.initial")}</TableCell>
-                <TableCell className="num">{formatMoney(r.amount)}</TableCell>
-                <TableCell className="num">{formatDate(r.effectiveFrom)}</TableCell>
+                <TableCell className="num-cell">{formatMoney(r.amount)}</TableCell>
+                <TableCell className="num-cell">{formatDate(r.effectiveFrom)}</TableCell>
                 <TableCell>{r.note ?? "—"}</TableCell>
               </TableRow>
             ))

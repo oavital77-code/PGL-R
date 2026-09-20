@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { SubContractPicker } from "./sub-contract-picker";
 
 export interface EntryDraft {
   id?: string;
@@ -31,7 +31,6 @@ export function EntryDialog({ userId, subs, draft, onClose, onSaved, onSaveAndNe
   const [start, setStart] = React.useState(draft.startTime ?? "");
   const [end, setEnd] = React.useState(draft.endTime ?? "");
   const [duration, setDuration] = React.useState(draft.minutes ? formatHours(draft.minutes) : "");
-  const [q, setQ] = React.useState("");
   const [pending, start_] = React.useTransition();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [errors, setErrors] = React.useState<Record<string, string[]>>({});
@@ -45,7 +44,6 @@ export function EntryDialog({ userId, subs, draft, onClose, onSaved, onSaveAndNe
     }
   }, [start, end]);
 
-  const filtered = q ? subs.filter((s) => s.label.includes(q)) : subs;
   const submit = (andNew: boolean) =>
     start_(async () => {
       const fd = new FormData(formRef.current!);
@@ -80,12 +78,7 @@ export function EntryDialog({ userId, subs, draft, onClose, onSaved, onSaveAndNe
               <Input id="te-date" name="workDate" type="date" defaultValue={draft.workDate} required />
             </Field>
             <Field label={t("sub_contract")} htmlFor="te-sc" required error={err("subContractId")}>
-              <Input placeholder={t("search_sub_contract")} value={q} onChange={(e) => setQ(e.target.value)} className="mb-1" />
-              <Select id="te-sc" name="subContractId" defaultValue={draft.subContractId} required size={Math.min(6, Math.max(2, filtered.length))}>
-                {filtered.map((s) => (
-                  <option key={s.id} value={s.id}>{s.label}</option>
-                ))}
-              </Select>
+              <SubContractPicker id="te-sc" name="subContractId" options={subs} defaultValue={draft.subContractId} required />
             </Field>
             <div className="grid grid-cols-3 gap-3">
               <Field label={t("start")} htmlFor="te-start" error={err("startTime")}>

@@ -32,9 +32,9 @@ export async function AuditTable({ filter, compact }: { filter: AuditFilter; com
             const reason = (a.after as { __reason?: string } | null)?.__reason;
             return (
               <TableRow key={a.id} className="align-top">
-                <TableCell className="num whitespace-nowrap text-xs">{f.dateTime(a.changedAt, { dateStyle: "short", timeStyle: "medium" })}</TableCell>
+                <TableCell className="num-cell whitespace-nowrap text-xs">{f.dateTime(a.changedAt, { dateStyle: "short", timeStyle: "medium" })}</TableCell>
                 <TableCell className="whitespace-nowrap">{userName ?? t("system")}</TableCell>
-                {compact ? null : <TableCell className="num text-xs">{a.tableName}</TableCell>}
+                {compact ? null : <TableCell className="num-cell text-xs">{a.tableName}</TableCell>}
                 <TableCell>
                   <Badge variant={a.action === "insert" ? "success" : a.action === "delete" ? "destructive" : "secondary"}>{t(a.action)}</Badge>
                 </TableCell>
@@ -52,7 +52,7 @@ export async function AuditTable({ filter, compact }: { filter: AuditFilter; com
                         <tbody>
                           {diff.map((d) => (
                             <tr key={d.field}>
-                              <td className="num pe-2 text-muted-foreground">{d.field}</td>
+                              <td className="num-cell pe-2 text-muted-foreground">{d.field}</td>
                               <td className="pe-2 text-destructive line-through">{fmt(d.before)}</td>
                               <td className="text-success">{fmt(d.after)}</td>
                             </tr>

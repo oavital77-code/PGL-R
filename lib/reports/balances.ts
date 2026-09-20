@@ -21,6 +21,7 @@ import {
   aggregateBalances,
   computeSubContractBalances,
   computeSubContractTotal,
+  isCountedStatus,
   milestoneAmounts,
   openingBilled,
   supplierCost,
@@ -129,7 +130,8 @@ export interface BalancesFilter {
   monthsTo?: string;
 }
 
-const COUNTED: InvoiceStatus[] = ["approved", "signed", "sent", "partially_paid", "paid"];
+/** Every status the balance engine counts (a draft included – DEVIATIONS 18/09/2026). */
+const COUNTED: InvoiceStatus[] = (["draft", "pending_approval", "approved", "signed", "sent", "partially_paid", "paid", "cancelled"] as InvoiceStatus[]).filter(isCountedStatus);
 
 /**
  * Loads everything needed for balances and runs the pure calc engine (spec §9).

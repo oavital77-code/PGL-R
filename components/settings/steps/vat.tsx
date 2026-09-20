@@ -32,8 +32,8 @@ export async function VatStep() {
             <TableBody>
               {rates.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell className="num">{formatPct(r.rate, 2)}</TableCell>
-                  <TableCell className="num">{formatDate(r.effectiveFrom)}</TableCell>
+                  <TableCell className="num-cell">{formatPct(r.rate, 2)}</TableCell>
+                  <TableCell className="num-cell">{formatDate(r.effectiveFrom)}</TableCell>
                   <TableCell className="text-end">
                     <DeleteVatRateButton id={r.id} />
                   </TableCell>

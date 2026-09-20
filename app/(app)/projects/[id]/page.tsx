@@ -2,9 +2,11 @@ import Link from "next/link";
 import { and, eq, isNull, inArray } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { can, requireCapability } from "@/lib/auth/authorize";
+import { can, requireUser } from "@/lib/auth/authorize";
+import { AuthError } from "@/lib/auth/errors";
+import { canManageTeam, canViewProject } from "@/lib/auth/project-access";
 import { db } from "@/lib/db";
-import { clients, contractStatuses, departments, invoices, projects, subContractAssignments, timeEntries, users } from "@/lib/db/schema";
+import { clients, contractStatuses, departments, grades, invoices, projects, subContractAssignments, timeEntries, users } from "@/lib/db/schema";
 import { contractBalancesReport } from "@/lib/reports/balances";
 import { contractFormLookups, projectFormLookups } from "@/lib/projects/lookups";
 import { computeProfitability } from "@/lib/calc/profitability";
@@ -23,9 +25,10 @@ import { ProjectTeamPanel } from "@/components/projects/project-team-panel";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { sql } from "drizzle-orm";
 
-export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
-  const user = await requireCapability("projects.view");
+export default async function ProjectPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
+  const user = await requireUser();
   const { id } = await params;
+  const { tab } = await searchParams;
   const [row] = await db
     .select({ p: projects, client: clients.name, status: contractStatuses.code, statusName: contractStatuses.name, dept: departments.name, pm: users.firstName, pmLast: users.lastName })
     .from(projects)
@@ -35,6 +38,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
     .leftJoin(users, eq(users.id, projects.projectManagerUserId))
     .where(and(eq(projects.id, id), isNull(projects.deletedAt)));
   if (!row) notFound();
+  if (!canViewProject(user, row.p)) throw new AuthError("FORBIDDEN");
   const [report, lookups, cLookups, payingClient, t, tc, ti] = await Promise.all([
     contractBalancesReport({ projectIds: [id] }),
     projectFormLookups(),
@@ -69,7 +73,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       : Promise.resolve([]),
     income.length ? db.select().from(invoices).where(and(inArray(invoices.contractId, income.map((c) => c.id)), isNull(invoices.deletedAt))).orderBy(sql`${invoices.invoiceDate} desc`) : Promise.resolve([]),
   ]);
-  const allUsers = await db.select({ id: users.id, first: users.firstName, last: users.lastName }).from(users).where(and(eq(users.isActive, true), isNull(users.deletedAt))).orderBy(users.lastName);
+  const allUsers = await db
+    .select({ id: users.id, first: users.firstName, last: users.lastName, department: departments.name, grade: grades.name })
+    .from(users)
+    .leftJoin(departments, eq(departments.id, users.departmentId))
+    .leftJoin(grades, eq(grades.id, users.gradeId))
+    .where(and(eq(users.isActive, true), isNull(users.deletedAt)))
+    .orderBy(users.lastName, users.firstName);
   return (
     <>
       <PageHeader
@@ -113,7 +123,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <Stat label={t("supplier_cost")} value={formatMoney(p.supplierCost)} />
         <Stat label={t("profit")} value={formatMoney(profit.profit)} sub={formatPct(profit.profitPct)} tone={profit.profit < 0 ? "destructive" : "success"} />
       </div>
-      <Tabs defaultValue="income">
+      <Tabs defaultValue={tab === "team" || tab === "documents" || tab === "expense" || tab === "hours" || tab === "invoices" ? tab : "income"}>
         <TabsList>
           <TabsTrigger value="income">{t("tab_client_contracts")}</TabsTrigger>
           <TabsTrigger value="expense">{t("tab_supplier_contracts")}</TabsTrigger>
@@ -135,8 +145,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <ProjectTeamPanel
             subContracts={p.contracts.filter((c) => c.direction === "income").flatMap((c) => c.subContracts.map((s) => ({ id: s.id, label: `${c.numberInProject}.${s.numberInContract} ${s.name}`, participates: s.participatesInHours && !c.isLocked })))}
             assignments={team.filter((a) => a.isActive).map((a) => ({ userId: a.userId, subContractId: a.subContractId }))}
-            users={allUsers.map((u) => ({ id: u.id, name: `${u.first} ${u.last}` }))}
-            canEdit={can(user, "assignments.manage")}
+            users={allUsers.map((u) => ({ id: u.id, name: `${u.first} ${u.last}`, department: u.department, grade: u.grade }))}
+            canEdit={canManageTeam(user, row.p)}
           />
         </TabsContent>
         <TabsContent value="hours">
@@ -161,8 +171,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     <TableCell>
                       {h.first} {h.last}
                     </TableCell>
-                    <TableCell className="num">{h.month}</TableCell>
-                    <TableCell className="num">{formatHours(Number(h.minutes))}</TableCell>
+                    <TableCell className="num-cell">{h.month}</TableCell>
+                    <TableCell className="num-cell">{formatHours(Number(h.minutes))}</TableCell>
                   </TableRow>
                 ))
               )}
@@ -191,15 +201,15 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
               ) : (
                 invs.map((i) => (
                   <TableRow key={i.id}>
-                    <TableCell className="num">
+                    <TableCell className="num-cell">
                       <Link href={`/invoices/${i.id}`} className="text-primary hover:underline">
                         {i.invoiceNumber}
                       </Link>
                     </TableCell>
-                    <TableCell className="num">{formatDate(i.invoiceDate)}</TableCell>
-                    <TableCell className="num">{i.partialNumber}</TableCell>
-                    <TableCell className="num">{formatMoney(i.beforeVat)}</TableCell>
-                    <TableCell className="num">{formatMoney(i.total)}</TableCell>
+                    <TableCell className="num-cell">{formatDate(i.invoiceDate)}</TableCell>
+                    <TableCell className="num-cell">{i.partialNumber}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(i.beforeVat)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(i.total)}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">{ti(i.status)}</Badge>
                     </TableCell>

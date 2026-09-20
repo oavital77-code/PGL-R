@@ -33,8 +33,8 @@ export async function RatesStep() {
               {rates.map((r) => (
                 <TableRow key={r.id}>
                   <TableCell>{gradeName.get(r.gradeId)}</TableCell>
-                  <TableCell className="num">{formatMoney(r.hourlyRate)}</TableCell>
-                  <TableCell className="num">{formatDate(r.effectiveFrom)}</TableCell>
+                  <TableCell className="num-cell">{formatMoney(r.hourlyRate)}</TableCell>
+                  <TableCell className="num-cell">{formatDate(r.effectiveFrom)}</TableCell>
                   <TableCell className="text-end">
                     <DeleteBillingRateButton id={r.id} />
                   </TableCell>

@@ -72,10 +72,10 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                     {r.c.name}
                   </Link>
                 </TableCell>
-                <TableCell className="num">{r.c.taxId ?? "—"}</TableCell>
-                <TableCell className="num">{r.activeContracts}</TableCell>
-                <TableCell className="num">{formatMoney(r.openBalance)}</TableCell>
-                <TableCell className="num">{Number(r.overdue) > 0 ? <Badge variant="destructive">{r.overdue}</Badge> : "—"}</TableCell>
+                <TableCell className="num-cell">{r.c.taxId ?? "—"}</TableCell>
+                <TableCell className="num-cell">{r.activeContracts}</TableCell>
+                <TableCell className="num-cell">{formatMoney(r.openBalance)}</TableCell>
+                <TableCell className="num-cell">{Number(r.overdue) > 0 ? <Badge variant="destructive">{r.overdue}</Badge> : "—"}</TableCell>
                 <TableCell>{r.c.isActive ? <Badge variant="success">{tc("active")}</Badge> : <Badge variant="muted">{tc("inactive")}</Badge>}</TableCell>
               </TableRow>
             ))

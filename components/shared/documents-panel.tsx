@@ -56,10 +56,10 @@ export async function DocumentsPanel({ entityType, entityId, canEdit, defaultTyp
                   ) : null}
                 </TableCell>
                 <TableCell>{d.documentType ? (typeName.get(d.documentType) ?? d.documentType) : "—"}</TableCell>
-                <TableCell className="num">{d.version}</TableCell>
-                <TableCell className="num">{(d.sizeBytes / 1024).toFixed(0)} KB</TableCell>
+                <TableCell className="num-cell">{d.version}</TableCell>
+                <TableCell className="num-cell">{(d.sizeBytes / 1024).toFixed(0)} KB</TableCell>
                 <TableCell>{uploader ? `${uploader} ${uploaderLast}` : "—"}</TableCell>
-                <TableCell className="num">{formatDate(d.createdAt)}</TableCell>
+                <TableCell className="num-cell">{formatDate(d.createdAt)}</TableCell>
                 <TableCell className="text-end">{canEdit ? <DeleteDocumentButton id={d.id} /> : null}</TableCell>
               </TableRow>
             ))

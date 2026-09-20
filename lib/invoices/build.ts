@@ -9,6 +9,7 @@ import {
   computeMilestoneLine,
   computeSubContractTotal,
   findIndexValue,
+  isCountedStatus,
   milestoneAmounts,
   rateFor,
   resolveInvoiceIndexMonth,
@@ -20,7 +21,8 @@ import { money, sumMoney } from "@/lib/calc/money";
 import { getSettingFresh } from "@/lib/settings/service";
 import { todayLocal } from "@/lib/i18n/format";
 
-const COUNTED: InvoiceStatus[] = ["approved", "signed", "sent", "partially_paid", "paid"];
+/** Statuses whose lines count as prior progress – the same rule as the balance engine (a draft included). */
+const COUNTED: InvoiceStatus[] = (["draft", "pending_approval", "approved", "signed", "sent", "partially_paid", "paid", "cancelled"] as InvoiceStatus[]).filter(isCountedStatus);
 
 export type LineInsert = Omit<typeof invoiceLines.$inferInsert, "invoiceId" | "id" | "createdAt" | "updatedAt" | "createdBy">;
 

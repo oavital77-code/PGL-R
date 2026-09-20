@@ -25,10 +25,10 @@ export function TimeEntriesPanel({ invoiceId, editable, rows }: { invoiceId: str
         <TableBody>
           {rows.map((r) => (
             <TableRow key={r.id}>
-              <TableCell className="num">{formatDate(r.date)}</TableCell>
+              <TableCell className="num-cell">{formatDate(r.date)}</TableCell>
               <TableCell>{r.sub}</TableCell>
               <TableCell>{r.name}</TableCell>
-              <TableCell className="num">{formatHours(r.minutes)}</TableCell>
+              <TableCell className="num-cell">{formatHours(r.minutes)}</TableCell>
               <TableCell>{r.description}</TableCell>
               {editable ? <TableCell><ActionButton action={() => removeTimeEntryFromDraftAction(invoiceId, r.id)} variant="ghost" size="icon" aria-label={t("remove_entry")}><Trash2 className="h-4 w-4 text-destructive" /></ActionButton></TableCell> : null}
             </TableRow>

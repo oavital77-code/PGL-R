@@ -112,7 +112,9 @@
     "clear": "Clear",
     "filter": "Filter",
     "email": "E-mail",
-    "phone": "Phone"
+    "phone": "Phone",
+    "department": "Department",
+    "grade": "Grade"
   },
   "errors": {
     "validation": "Please fix the highlighted fields",
@@ -174,7 +176,9 @@
     "chart_aging": "Receivables aging",
     "chart_hours_dept": "Hours by department this month",
     "my_approvals": "Waiting for your approval",
-    "approvals_none": "Nothing is waiting for you"
+    "approvals_none": "Nothing is waiting for you",
+    "my_projects": "Projects I manage",
+    "my_projects_hint": "Open a project here and assign staff in its \"Team\" tab."
   },
   "invoices": {
     "status": {
@@ -1068,7 +1072,8 @@
     "cumulative": "Cumulative",
     "lock_signed": "Signed contract (lock)",
     "unlock_hint": "Unlocking is audited with the reason.",
-    "cannot_delete_used": "Cannot delete a sub-contract with hours or invoices"
+    "cannot_delete_used": "Cannot delete a sub-contract with hours or invoices",
+    "invoice_lines_here": "Stages billed (this sub-contract)"
   },
   "pricing": {
     "title": "Pricing",
@@ -1130,7 +1135,8 @@
   },
   "assignments": {
     "none": "No employees assigned",
-    "remove_hint": "Removing an employee does not delete existing entries."
+    "remove_hint": "Removing an employee does not delete existing entries.",
+    "edit_team": "Add or remove employees"
   },
   "estimates": {
     "title": "Execution cost estimates",
@@ -1215,7 +1221,8 @@
     "over_day": "Duration exceeds a full day",
     "not_assigned": "Employee is not assigned to this sub-contract",
     "period_locked": "Period is locked – ask an admin to unlock",
-    "day_cap": "Total minutes for the day exceed the maximum"
+    "day_cap": "Total minutes for the day exceed the maximum",
+    "no_sub_contract_match": "No matching sub-contract"
   },
   "pdf": {
     "title": "Proforma invoice",

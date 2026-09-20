@@ -57,7 +57,7 @@ export function DiffReportButton() {
                 <TableBody>
                   {rows.map((r, i) => (
                     <TableRow key={i} className={r.diff !== null && Math.abs(r.diff) > 0.01 ? "bg-amber-50" : ""}>
-                      <TableCell>{r.name}</TableCell><TableCell>{t(`fields.${r.field}` as "fields.submitted")}</TableCell><TableCell className="num">{formatMoney(r.expected)}</TableCell><TableCell className="num">{formatMoney(r.actual)}</TableCell><TableCell className="num">{formatMoney(r.diff)}</TableCell>
+                      <TableCell>{r.name}</TableCell><TableCell>{t(`fields.${r.field}` as "fields.submitted")}</TableCell><TableCell className="num-cell">{formatMoney(r.expected)}</TableCell><TableCell className="num-cell">{formatMoney(r.actual)}</TableCell><TableCell className="num-cell">{formatMoney(r.diff)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

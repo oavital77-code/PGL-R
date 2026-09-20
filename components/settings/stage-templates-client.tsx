@@ -93,7 +93,7 @@ export function StageTemplatesEditor({ stageNames, templates }: { stageNames: { 
                 <TableBody>
                   {editing.items.map((it, idx) => (
                     <TableRow key={idx}>
-                      <TableCell className="num">{idx + 1}</TableCell>
+                      <TableCell className="num-cell">{idx + 1}</TableCell>
                       <TableCell>
                         <Select value={it.stageNameId} onChange={(e) => setEditing({ ...editing, items: editing.items.map((x, i) => (i === idx ? { ...x, stageNameId: e.target.value } : x)) })}>
                           {stageNames.map((s) => (

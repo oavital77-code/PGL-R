@@ -68,10 +68,10 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                     {u.firstName} {u.lastName}
                   </Link>
                 </TableCell>
-                <TableCell className="num">{u.email}</TableCell>
+                <TableCell className="num-cell">{u.email}</TableCell>
                 <TableCell>{tr(u.role)}</TableCell>
                 <TableCell>{dept ?? "—"}</TableCell>
-                <TableCell className="num">{formatDate(u.employmentStart)}</TableCell>
+                <TableCell className="num-cell">{formatDate(u.employmentStart)}</TableCell>
                 <TableCell>
                   {!u.isActive || u.deletedAt ? <Badge variant="muted">{t("status_inactive")}</Badge> : u.clerkUserId ? <Badge variant="success">{t("status_active")}</Badge> : <Badge variant="warning">{t("status_invited")}</Badge>}
                 </TableCell>

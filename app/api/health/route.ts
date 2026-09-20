@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import postgres from "postgres";
 import { db, resolveDatabaseUrl } from "@/lib/db";
+import { probeStorage } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -25,9 +26,11 @@ export async function GET() {
       await fresh.end({ timeout: 1 }).catch(() => undefined);
     }
   });
-  const ok = pooled.ok && cold.ok;
+  // storage: the service key must be accepted by Supabase, or no PDF can be stored
+  const storage = await time(() => cap(probeStorage(), 8000));
+  const ok = pooled.ok && cold.ok && storage.ok;
   const pool = process.env.DATABASE_URL ? resolveDatabaseUrl(process.env.DATABASE_URL).mode : null;
-  return Response.json({ ok, ts: new Date().toISOString(), region: process.env.VERCEL_REGION ?? null, pool, db: pooled, cold }, { status: ok ? 200 : 503 });
+  return Response.json({ ok, ts: new Date().toISOString(), region: process.env.VERCEL_REGION ?? null, pool, db: pooled, cold, storage }, { status: ok ? 200 : 503 });
 }
 
 async function time(fn: () => Promise<unknown>): Promise<{ ok: boolean; ms: number; error?: string }> {

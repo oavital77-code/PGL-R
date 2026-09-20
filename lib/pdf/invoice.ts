@@ -124,20 +124,20 @@ export async function buildInvoiceHtml(invoiceId: string, opts: { draft: boolean
   const font = fontDataUri();
   return `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><style>
 @font-face{font-family:"Assistant";src:url("${font}") format("truetype");font-weight:200 800}
-@page{size:A4;margin:14mm 12mm 18mm 12mm}
-*{box-sizing:border-box}body{font-family:"Assistant",Arial,sans-serif;font-size:11pt;color:#111;margin:0;direction:rtl}
-.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #2a3380;padding-bottom:8px;margin-bottom:10px}
-.logo img{max-height:60px}.date{font-size:10pt}.title{text-align:center;font-size:18pt;font-weight:700;color:#2a3380;margin:8px 0}
-.blocks{display:flex;justify-content:space-between;gap:16px;margin:8px 0;font-size:10.5pt}.block{border:1px solid #ddd;border-radius:4px;padding:6px 10px;min-width:45%}
-h2{font-size:14pt;color:#2a3380;margin:12px 0 6px}h3{font-size:11.5pt;margin:12px 0 4px;color:#2a3380}
-table{width:100%;border-collapse:collapse;font-size:10pt;margin-bottom:6px}th,td{border:1px solid #ccc;padding:4px 6px;text-align:center;direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
+@page{size:A4;margin:10mm 10mm 16mm 10mm}
+*{box-sizing:border-box}body{font-family:"Assistant",Arial,sans-serif;font-size:10pt;color:#111;margin:0;direction:rtl;line-height:1.3}
+.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #2a3380;padding-bottom:5px;margin-bottom:6px}
+.logo img{max-height:48px}.date{font-size:9.5pt}.title{text-align:center;font-size:16pt;font-weight:700;color:#2a3380;margin:4px 0}
+.blocks{display:flex;justify-content:space-between;gap:12px;margin:6px 0;font-size:9.5pt}.block{border:1px solid #ddd;border-radius:4px;padding:4px 8px;min-width:45%}
+h2{font-size:12.5pt;color:#2a3380;margin:8px 0 3px}h3{font-size:10.5pt;margin:7px 0 2px;color:#2a3380}
+table{width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:4px}th,td{border:1px solid #ccc;padding:2px 5px;text-align:center;direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums}
 th{background:#eef0fb;color:#1f2660}td.t,th.t{text-align:right;direction:rtl}tfoot td{font-weight:700;background:#f6f7fb}
-.summary{width:60%;margin-inline-start:auto;margin-top:12px}.summary td{text-align:left}.summary td.t{text-align:right}.summary tr.strong td{font-weight:700}.summary tr.total td{font-weight:800;background:#eef0fb;font-size:11.5pt}
-.sig{margin-top:24px;display:flex;justify-content:space-between;align-items:flex-end}.sig img{max-height:70px}.sig .name{font-weight:700}.sig .sigline{width:200px;height:48px;border-bottom:1px solid #000;color:#666;font-size:10px;display:flex;align-items:flex-end}
-.footer{position:fixed;bottom:-12mm;left:0;right:0;font-size:8.5pt;color:#555;border-top:1px solid #ccc;padding-top:4px;display:flex;justify-content:space-between;align-items:center}
+.summary{width:55%;margin-inline-start:auto;margin-top:8px}.summary td{text-align:left}.summary td.t{text-align:right}.summary tr.strong td{font-weight:700}.summary tr.total td{font-weight:800;background:#eef0fb;font-size:10.5pt}
+.sig{margin-top:14px;display:flex;justify-content:space-between;align-items:flex-end}.sig img{max-height:60px}.sig .name{font-weight:700}.sig .sigline{width:200px;height:40px;border-bottom:1px solid #000;color:#666;font-size:9px;display:flex;align-items:flex-end}
+.footer{position:fixed;bottom:0;left:0;right:0;font-size:8pt;color:#555;border-top:1px solid #ccc;padding-top:3px;display:flex;justify-content:space-between;align-items:center}
 .watermark{position:fixed;top:40%;left:10%;right:10%;text-align:center;font-size:48pt;color:rgba(220,38,38,.18);transform:rotate(-20deg);font-weight:800;pointer-events:none}
-.page-break{page-break-before:always}.intro{margin:6px 0 10px}.bank{font-size:9.5pt;margin-top:10px;color:#333}
-</style></head><body>
+.page-break{page-break-before:always}.intro{margin:4px 0 6px}.bank{font-size:9pt;margin-top:6px;color:#333}
+</style></head><body style="padding-bottom:22px">
 ${opts.draft ? `<div class="watermark">${T.draft_watermark}</div>` : ""}
 <div class="header"><div class="logo">${logo ? `<img src="${logo}" alt="logo">` : `<strong style="font-size:16pt;color:#2a3380">${esc(company.name)}</strong>`}</div><div class="date">${T.date}: ${formatDate(inv.invoiceDate)}</div></div>
 <div class="title">${inv.invoiceKind === "credit" ? T.credit_title : T.title} ${esc(inv.invoiceNumber)}</div>

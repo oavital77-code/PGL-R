@@ -62,6 +62,28 @@
 
 > אם משתמשים ב-Google OAuth: בהגדרות Clerk הגבילו אותו כך שלא יאפשר יצירת חשבון חדש, אלא רק כניסה למשתמש שכבר הוזמן.
 
+### 2.1 מעבר מ-Development ל-Production instance
+
+ב-Clerk כל אפליקציה מחזיקה שני instances נפרדים. ה-**Development** הוא זה שמפתחים איתו, והוא אינו מיועד לעבודה אמיתית:
+
+- עד 100 משתמשים.
+- המיילים יוצאים עם קידומת "development", והכניסה מתבצעת מול כתובת `accounts.dev` ולא מהדומיין שלכם.
+- מפתחות מסוג `pk_test_` / `sk_test_`.
+
+ה-**Production instance** דורש **דומיין בבעלותכם** עם גישה ל-DNS. אין דרך להפעיל אותו על כתובת `*.vercel.app`.
+
+1. ב-Clerk: `Create production instance` (אפשר להעתיק את הגדרות ה-Development).
+2. `Domains`: הזינו את דומיין האפליקציה (למשל `app.pgl.co.il`) והוסיפו אצל ספק ה-DNS את רשומות ה-CNAME שהמסך מציג (Frontend API, accounts, ודואר). ההפצה אורכת עד 48 שעות, בדרך כלל דקות. אם הדומיין עובר דרך פרוקסי (Cloudflare), הגדירו את הרשומות כ-**DNS only**.
+3. הוסיפו את אותו דומיין ב-Vercel (`Settings → Domains`) ועדכנו את `APP_BASE_URL`.
+4. העתיקו את המפתחות החדשים (`pk_live_` / `sk_live_`) ל-`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` ו-`CLERK_SECRET_KEY` ב-Vercel, ובצעו **Redeploy**.
+5. הגדירו מחדש את ה-webhook (שלב 8) מול ה-instance החדש, והעתיקו את ה-Signing Secret החדש ל-`CLERK_WEBHOOK_SECRET`.
+6. אם מופעל Google OAuth: ב-Production נדרשים **credentials משלכם** מ-Google Cloud, לא אלה של מצב הפיתוח.
+7. הזמינו מחדש את המשתמשים, **באותן כתובות מייל**.
+
+> נתוני המשתמשים אינם עוברים בין ה-instances, אבל הנתונים במערכת נשמרים: טבלת `users` היא מקור התפקידים וההיסטוריה, והמערכת מזהה את המשתמש לפי כתובת המייל המאומתת וממפה אליו את מזהה Clerk החדש בכניסה הראשונה. כל עוד המייל זהה, המשתמש נכנס לאותה רשומה, עם אותו תפקיד ואותה היסטוריה.
+
+---
+
 ---
 
 ## 3. Resend – דואר יוצא

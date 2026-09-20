@@ -37,14 +37,20 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   const rows = await db.select().from(users).where(eq(users.clerkUserId, clerkId)).limit(1);
   let row = rows[0];
   if (!row) {
-    // First sign-in of an invited user: link by e-mail (invitation created the row without clerk id).
+    // No row carries this Clerk id yet, so the verified e-mail identifies the user. That happens
+    // on an invited user's first sign-in (the invitation created the row without a Clerk id), and
+    // again on the first sign-in after the Clerk instance is replaced – moving from the
+    // development instance to the production one issues new ids for the same people, and Clerk
+    // does not carry user data between instances. Sign-up is invitation-only (spec §6.1) and the
+    // address is verified by Clerk, so the row is re-pointed at the id that is signing in now;
+    // leaving a stale id behind would cost every later request this same lookup.
     const cu = await clerkCurrentUser();
     const email = cu?.primaryEmailAddress?.emailAddress?.toLowerCase();
     if (!email) return null;
     const byEmail = await db.select().from(users).where(eq(users.email, email)).limit(1);
     row = byEmail[0];
     if (!row) return null;
-    if (!row.clerkUserId) {
+    if (row.clerkUserId !== clerkId) {
       await db.update(users).set({ clerkUserId: clerkId, lastSeenAt: new Date() }).where(eq(users.id, row.id));
       row = { ...row, clerkUserId: clerkId };
     }

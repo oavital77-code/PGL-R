@@ -226,7 +226,11 @@
       "period_to": "To",
       "create_draft": "Create draft",
       "remaining": "Remaining",
-      "open_method": "Open method"
+      "open_method": "Open method",
+      "create_and_submit": "Create and submit for approval",
+      "submitted": "Submitted for approval",
+      "create_draft_hint": "On the draft, enter each stage's progress and then \"Submit for approval\".",
+      "create_and_submit_hint": "Hours/retainer/unit lines are built automatically – submit directly, or open the draft to edit."
     },
     "detail": {
       "lines": "Lines",
@@ -277,7 +281,7 @@
       "vat": "VAT",
       "total": "Total to pay",
       "expected_receipt": "Expected receipt (after withholding)",
-      "missing_index": "Index value missing – cannot approve. Enter it in settings.",
+      "missing_index": "Missing index value – required before the final approval and issuing. Enter it in settings:",
       "consistency": "Warning: current total differs from the sum of lines by {diff}",
       "submit": "Submit for approval",
       "approve": "Approve",
@@ -326,7 +330,8 @@
       "step_issued": "Issued",
       "step_sent": "Sent",
       "step_paid": "Paid",
-      "no_decisions": "No decisions yet"
+      "no_decisions": "No decisions yet",
+      "issue_and_send": "Issue and send"
     },
     "not_client_contract": "Invoices can only be issued for client contracts",
     "not_editable": "Invoice is not a draft",

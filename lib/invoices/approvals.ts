@@ -32,12 +32,16 @@ async function loadInvoice(id: string): Promise<Invoice> {
   return inv;
 }
 
-/** Amount and index-linkage checks required before an invoice may be approved (spec §11.3). */
-export async function assertApprovable(id: string): Promise<Invoice> {
+/**
+ * Amount check before an invoice may move on (spec §11.3). The index values are required only
+ * where the amounts become final – the last approval and issuing (customer decision 20/09/2026):
+ * the stations before that review the content, and the index can still be entered meanwhile.
+ */
+export async function assertApprovable(id: string, opts: { requireIndex: boolean } = { requireIndex: true }): Promise<Invoice> {
   const inv = await loadInvoice(id);
   const lines = await db.select().from(invoiceLines).where(eq(invoiceLines.invoiceId, id));
   if (!lines.some((l) => Number(l.amountThis) !== 0)) throw new BusinessRuleError("invoices.no_amount");
-  if (inv.indexLinked && (!inv.indexCurrentValue || !inv.indexBaseValue)) throw new BusinessRuleError("invoices.missing_index");
+  if (opts.requireIndex && inv.indexLinked && (!inv.indexCurrentValue || !inv.indexBaseValue)) throw new BusinessRuleError("invoices.missing_index");
   return inv;
 }
 
@@ -81,10 +85,11 @@ async function notifyCreator(inv: Invoice, actorId: string, type: "invoice.appro
 
 /** draft → first station, or straight to approved when no stations are configured. */
 export async function submitDraft(actor: Actor, id: string): Promise<"pending_approval" | "approved"> {
-  const inv = await assertApprovable(id);
+  const inv = await assertApprovable(id, { requireIndex: false });
   if (inv.status !== "draft") throw new BusinessRuleError("invoices.invalid_transition");
   const chain = await resolveChain(inv.contractId);
   if (chain.length === 0) {
+    await assertApprovable(id); // approved at once: the amounts are final here
     await withUser({ userId: actor.id }, (tx) => finalizeInTx(tx, inv, actor.id));
     await notifyCreator(inv, actor.id, "invoice.approved", `חשבון ${inv.invoiceNumber} אושר`);
     return "approved";
@@ -101,8 +106,8 @@ export async function decide(actor: Actor, id: string, decision: "approved" | "r
   if (!canDecide(inv, actor)) throw new AuthError("FORBIDDEN", "not at this station");
   const station = currentStation(inv)!;
   const chain = inv.approvalChain!;
-  if (decision === "approved") await assertApprovable(id);
   const last = inv.approvalStep >= chain.length;
+  if (decision === "approved") await assertApprovable(id, { requireIndex: last });
   await withUser({ userId: actor.id }, async (tx) => {
     await tx.insert(invoiceApprovals).values({ invoiceId: id, step: inv.approvalStep, stationKey: station.key, stationName: station.name, userId: actor.id, decision, comment, createdBy: actor.id });
     if (decision === "rejected") await tx.update(invoices).set({ status: "draft", approvalStep: 0, approvalChain: null }).where(eq(invoices.id, id));

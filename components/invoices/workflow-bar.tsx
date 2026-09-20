@@ -29,6 +29,8 @@ export function WorkflowBar({ invoice, caps, signatureMode, signers, lines }: Pr
   const tAll = useTranslations();
   const router = useRouter();
   const [signer, setSigner] = React.useState(signers[0]?.id ?? "");
+  // "issue and send": the send dialog opens by itself once the PDF exists (client state survives router.refresh())
+  const [sendAfterIssue, setSendAfterIssue] = React.useState(false);
   const [pending, start] = React.useTransition();
   const s = invoice.status;
   const preview = () =>
@@ -52,9 +54,10 @@ export function WorkflowBar({ invoice, caps, signatureMode, signers, lines }: Pr
         <span className="inline-flex items-center gap-1">
           <Select value={signer} onChange={(e) => setSigner(e.target.value)} className="w-40"><option value="">{t("signer")}</option>{signers.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</Select>
           <ActionButton action={() => signInvoiceAction(invoice.id, signer || undefined)}><PenLine /> {signatureMode === "digital" ? t("sign") : t("issue")}</ActionButton>
+          {caps.send ? <ActionButton variant="secondary" action={() => signInvoiceAction(invoice.id, signer || undefined)} onSuccess={() => setSendAfterIssue(true)}><Send /> {t("issue_and_send")}</ActionButton> : null}
         </span>
       ) : null}
-      {s === "signed" && caps.send ? <SendDialog invoiceId={invoice.id} /> : null}
+      {s === "signed" && caps.send ? <SendDialog invoiceId={invoice.id} defaultOpen={sendAfterIssue} /> : null}
       {["approved", "signed", "sent", "partially_paid", "paid"].includes(s) && invoice.kind === "proforma" && caps.create ? <CreditDialog invoiceId={invoice.id} lines={lines} /> : null}
       {(s === "approved" || s === "signed" || s === "pending_approval") && caps.admin ? <ActionButton action={() => backToDraftAction(invoice.id)} variant="outline"><RotateCcw /> {t("back_to_draft")}</ActionButton> : null}
       {s !== "cancelled" && caps.cancel && !invoice.hasReceipts ? <ConfirmDialog title={t("cancel")} requireReason action={(reason) => cancelInvoiceAction(invoice.id, reason)} trigger={<Button variant="destructive"><XCircle /> {t("cancel")}</Button>} onSuccess={() => router.refresh()} /> : null}
@@ -62,12 +65,19 @@ export function WorkflowBar({ invoice, caps, signatureMode, signers, lines }: Pr
   );
 }
 
-function SendDialog({ invoiceId }: { invoiceId: string }) {
+function SendDialog({ invoiceId, defaultOpen = false }: { invoiceId: string; defaultOpen?: boolean }) {
   const t = useTranslations("invoices.detail");
   const tc = useTranslations("common");
   const tAll = useTranslations();
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
+  React.useEffect(() => {
+    if (defaultOpen) {
+      setOpen(true);
+      load();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultOpen]);
   const [to, setTo] = React.useState("");
   const [cc, setCc] = React.useState("");
   const [subject, setSubject] = React.useState("");

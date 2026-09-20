@@ -988,7 +988,7 @@
     "index_linked": "הצמדה למדד",
     "suggested_from_client": "הוצע מכרטיס הלקוח",
     "index_base_month": "חודש בסיס",
-    "index_base_month_hint": "ברירת מחדל: חודש החתימה",
+    "index_base_month_hint": "ברירת מחדל: המדד האחרון שפורסם במועד החתימה (מדד חודש M מתפרסם ב-15 לחודש שאחריו)",
     "index_floor": "הגבל רצפת מדד",
     "participates_in_hours": "משתתף בדיווח שעות",
     "participates_in_hours_short": "דיווח",

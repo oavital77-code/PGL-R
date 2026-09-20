@@ -15,6 +15,19 @@ export function toMonthKey(date: string): MonthKey {
   return `${date.slice(0, 7)}-01`;
 }
 
+/**
+ * The index a contract signed on `signedDate` is anchored to (customer decision 19/09/2026):
+ * the last CPI already published on that day. The CBS publishes month M on the 15th of M+1,
+ * so a contract signed on or after the 15th anchors to the previous month, and one signed
+ * earlier to the month before that. Anchoring to the signing month itself, as the spec did,
+ * left every new contract without a base value until the middle of the next month.
+ */
+export function lastPublishedIndexMonth(signedDate: string): MonthKey {
+  const month = toMonthKey(signedDate);
+  const day = Number(signedDate.slice(8, 10));
+  return day >= 15 ? previousMonth(month) : previousMonth(previousMonth(month));
+}
+
 export function previousMonth(month: MonthKey): MonthKey {
   const y = Number(month.slice(0, 4));
   const m = Number(month.slice(5, 7));

@@ -1,6 +1,7 @@
 "use client";
 import { useTranslations } from "next-intl";
 import * as React from "react";
+import { lastPublishedIndexMonth } from "@/lib/calc/index-linkage";
 import type { contracts } from "@/lib/db/schema";
 import type { ContractFormLookups } from "@/lib/projects/lookups";
 import { Field } from "@/components/ui/form-field";
@@ -114,7 +115,7 @@ export function ContractHeaderFields({ contract, direction, lookups, defaultClie
         {indexLinked ? (
           <div className="grid gap-3 md:grid-cols-2">
             <Field label={t("index_base_month")} htmlFor="indexBaseMonth" required hint={t("index_base_month_hint")}>
-              <Input id="indexBaseMonth" name="indexBaseMonth" type="date" defaultValue={contract?.indexBaseMonth ?? (signed ? `${signed.slice(0, 7)}-01` : "")} required />
+              <Input id="indexBaseMonth" name="indexBaseMonth" type="date" key={contract?.indexBaseMonth ?? signed} defaultValue={contract?.indexBaseMonth ?? (signed ? lastPublishedIndexMonth(signed) : "")} required />
             </Field>
             <label className="flex items-center gap-2 text-sm pt-6">
               <input type="checkbox" name="indexFloor" defaultChecked={contract?.indexFloor ?? false} /> {t("index_floor")}

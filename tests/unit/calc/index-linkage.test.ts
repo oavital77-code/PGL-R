@@ -3,6 +3,7 @@ import {
   computeIndexRatio,
   findIndexValue,
   indexDifference,
+  lastPublishedIndexMonth,
   previousMonth,
   resolveInvoiceIndexMonth,
   toMonthKey,
@@ -45,5 +46,12 @@ describe("index linkage", () => {
   });
   it("6 decimal ratio", () => {
     expect(computeIndexRatio({ indexLinked: true, indexFloor: false, baseValue: 103.7, currentValue: 106.2 }).ratio).toBe(1.024108);
+  });
+  it("anchors a new contract to the last index published on the signing day", () => {
+    // month M is published on the 15th of M+1
+    expect(lastPublishedIndexMonth("2026-09-19")).toBe("2026-08-01");
+    expect(lastPublishedIndexMonth("2026-09-15")).toBe("2026-08-01");
+    expect(lastPublishedIndexMonth("2026-09-14")).toBe("2026-07-01");
+    expect(lastPublishedIndexMonth("2026-01-03")).toBe("2025-11-01");
   });
 });

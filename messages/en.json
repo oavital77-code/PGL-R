@@ -988,7 +988,7 @@
     "index_linked": "Index linked",
     "suggested_from_client": "suggested from client",
     "index_base_month": "Base month",
-    "index_base_month_hint": "Default: signing month",
+    "index_base_month_hint": "Default: the last index published on the signing date (month M is published on the 15th of the next month)",
     "index_floor": "Index floor",
     "participates_in_hours": "Participates in timesheets",
     "participates_in_hours_short": "Hours",

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Field } from "@/components/ui/form-field";
+import { MultiSelect, type MultiOption } from "@/components/ui/multi-select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils/cn";
@@ -33,6 +34,21 @@ interface Props {
   canSchedule: boolean;
   canShare: boolean;
   title: string;
+}
+
+/** The filters that hold a list of ids; an empty list means "all" for every report. */
+const LIST_PARAMS = ["clientIds", "projectIds", "subContractIds", "departmentIds", "userIds", "pmIds", "statusCodes", "pricingMethods", "supplierIds", "invoiceStatuses"] as const;
+
+/**
+ * One list filter. It lives at module level on purpose: declared inside the builder it would be
+ * a new component type on every render, and the search box would lose its text on each pick.
+ */
+function FilterSelect({ label, k, options, params, onChange }: { label: string; k: keyof ReportParams; options: MultiOption[]; params: ReportParams; onChange: (k: keyof ReportParams, values: string[]) => void }) {
+  return (
+    <Field label={label}>
+      <MultiSelect options={options} value={(params[k] as string[] | undefined) ?? []} onChange={(v) => onChange(k, v)} />
+    </Field>
+  );
 }
 
 const GROUP_ORDER: ReportGroup[] = ["hours", "financial", "contracts", "suppliers", "payroll", "system"];
@@ -107,6 +123,8 @@ export function ReportBuilder({ defs, data, initialKey, initialParams, canSchedu
   const has = (f: FilterKey) => def.filters.includes(f);
   const set = (patch: Partial<ReportParams>) => setParams((p) => ({ ...p, ...patch }));
   const multi = (k: keyof ReportParams, values: string[]) => set({ [k]: values.length ? values : undefined } as Partial<ReportParams>);
+  const anyListFilter = LIST_PARAMS.some((k) => (params[k] as string[] | undefined)?.length);
+  const clearFilters = () => set(Object.fromEntries(LIST_PARAMS.map((k) => [k, undefined])) as Partial<ReportParams>);
 
   const run = () =>
     start(async () => {
@@ -223,16 +241,6 @@ export function ReportBuilder({ defs, data, initialKey, initialParams, canSchedu
     return fmtCell(c.type, v);
   };
 
-  const MultiSelect = ({ label, k, options }: { label: string; k: keyof ReportParams; options: { id: string; name: string }[] }) => (
-    <Field label={label}>
-      <select multiple value={(params[k] as string[] | undefined) ?? []} onChange={(e) => multi(k, [...e.target.selectedOptions].map((o) => o.value))} className="h-24 w-full rounded-md border border-input bg-card px-2 text-sm">
-        {options.map((o) => (
-          <option key={o.id} value={o.id}>{o.name}</option>
-        ))}
-      </select>
-    </Field>
-  );
-
   return (
     <div className="flex flex-col gap-4 lg:flex-row">
       {/* sidebar (right in RTL) */}
@@ -279,16 +287,16 @@ export function ReportBuilder({ defs, data, initialKey, initialParams, canSchedu
             </>
           ) : null}
           {has("month") ? <Field label={t("month")}><Input type="month" value={params.month ?? new Date().toISOString().slice(0, 7)} onChange={(e) => set({ month: e.target.value })} /></Field> : null}
-          {has("clients") && data.clients.length ? <MultiSelect label={t("clients")} k="clientIds" options={data.clients} /> : null}
-          {has("projects") ? <MultiSelect label={t("projects")} k="projectIds" options={data.projects.map((p) => ({ id: p.id, name: p.label }))} /> : null}
-          {has("subContracts") ? <MultiSelect label={t("sub_contracts")} k="subContractIds" options={data.subContracts.filter((s) => !params.projectIds?.length || params.projectIds.includes(s.projectId)).map((s) => ({ id: s.id, name: s.label }))} /> : null}
-          {has("departments") ? <MultiSelect label={t("departments")} k="departmentIds" options={data.departments} /> : null}
-          {has("users") ? <MultiSelect label={t("employees")} k="userIds" options={data.users.filter((u) => params.includeInactive || u.isActive)} /> : null}
-          {has("pms") ? <MultiSelect label={t("project_managers")} k="pmIds" options={data.pms} /> : null}
-          {has("statuses") ? <MultiSelect label={t("statuses")} k="statusCodes" options={data.statuses.map((s) => ({ id: s.code, name: s.name }))} /> : null}
-          {has("pricingMethods") ? <MultiSelect label={t("pricing_methods")} k="pricingMethods" options={["fixed_price", "hourly", "retainer", "pct_of_cost", "per_unit"].map((m) => ({ id: m, name: tAll(`pricing.${m}`) }))} /> : null}
-          {has("suppliers") && data.suppliers.length ? <MultiSelect label={t("suppliers")} k="supplierIds" options={data.suppliers} /> : null}
-          {has("invoiceStatuses") ? <MultiSelect label={t("invoice_statuses")} k="invoiceStatuses" options={["draft", "pending_approval", "approved", "signed", "sent", "partially_paid", "paid", "cancelled"].map((s) => ({ id: s, name: tAll(`invoices.status.${s}`) }))} /> : null}
+          {has("clients") && data.clients.length ? <FilterSelect params={params} onChange={multi} label={t("clients")} k="clientIds" options={data.clients} /> : null}
+          {has("projects") ? <FilterSelect params={params} onChange={multi} label={t("projects")} k="projectIds" options={data.projects.map((p) => ({ id: p.id, name: p.label }))} /> : null}
+          {has("subContracts") ? <FilterSelect params={params} onChange={multi} label={t("sub_contracts")} k="subContractIds" options={data.subContracts.filter((s) => !params.projectIds?.length || params.projectIds.includes(s.projectId)).map((s) => ({ id: s.id, name: s.label }))} /> : null}
+          {has("departments") ? <FilterSelect params={params} onChange={multi} label={t("departments")} k="departmentIds" options={data.departments} /> : null}
+          {has("users") ? <FilterSelect params={params} onChange={multi} label={t("employees")} k="userIds" options={data.users.filter((u) => params.includeInactive || u.isActive)} /> : null}
+          {has("pms") ? <FilterSelect params={params} onChange={multi} label={t("project_managers")} k="pmIds" options={data.pms} /> : null}
+          {has("statuses") ? <FilterSelect params={params} onChange={multi} label={t("statuses")} k="statusCodes" options={data.statuses.map((s) => ({ id: s.code, name: s.name }))} /> : null}
+          {has("pricingMethods") ? <FilterSelect params={params} onChange={multi} label={t("pricing_methods")} k="pricingMethods" options={["fixed_price", "hourly", "retainer", "pct_of_cost", "per_unit"].map((m) => ({ id: m, name: tAll(`pricing.${m}`) }))} /> : null}
+          {has("suppliers") && data.suppliers.length ? <FilterSelect params={params} onChange={multi} label={t("suppliers")} k="supplierIds" options={data.suppliers} /> : null}
+          {has("invoiceStatuses") ? <FilterSelect params={params} onChange={multi} label={t("invoice_statuses")} k="invoiceStatuses" options={["draft", "pending_approval", "approved", "signed", "sent", "partially_paid", "paid", "cancelled"].map((s) => ({ id: s, name: tAll(`invoices.status.${s}`) }))} /> : null}
           {has("incomeMode") ? <Field label={t("income_mode")}><Select value={params.incomeMode ?? "submitted"} onChange={(e) => set({ incomeMode: e.target.value as ReportParams["incomeMode"] })}><option value="submitted">{t("income_submitted")}</option><option value="completed_milestones">{t("income_completed")}</option></Select></Field> : null}
           {def.groupByOptions.length ? <Field label={t("group_by")}><Select value={params.groupBy?.[0] ?? ""} onChange={(e) => set({ groupBy: e.target.value ? [e.target.value] : undefined })}><option value="">—</option>{def.groupByOptions.map((g) => <option key={g} value={g}>{t(`group_by_options.${g}`)}</option>)}</Select></Field> : null}
           <div className="flex flex-col gap-1 pt-5 text-sm">
@@ -296,6 +304,7 @@ export function ReportBuilder({ defs, data, initialKey, initialParams, canSchedu
             {has("showMonths") ? <label className="flex items-center gap-2"><input type="checkbox" checked={Boolean(params.showMonths)} onChange={(e) => set({ showMonths: e.target.checked })} /> {t("show_months")}</label> : null}
             {has("dateRange") ? <label className="flex items-center gap-2"><input type="checkbox" checked={Boolean(params.compare)} onChange={(e) => set({ compare: e.target.checked })} /> {t("compare")}</label> : null}
             <label className="flex items-center gap-2"><input type="checkbox" checked={showTotals} onChange={(e) => setShowTotals(e.target.checked)} /> {t("show_totals")}</label>
+            <button type="button" onClick={clearFilters} disabled={!anyListFilter} className="mt-1 self-start rounded border border-border px-2 py-1 text-xs hover:bg-muted disabled:opacity-40">{t("clear_filters")}</button>
           </div>
         </div>
 

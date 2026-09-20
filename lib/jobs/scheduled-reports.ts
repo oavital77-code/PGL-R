@@ -20,7 +20,7 @@ export async function scheduledReportsJob() {
     .innerJoin(reportTemplates, eq(reportTemplates.id, reportSchedules.templateId))
     .where(and(eq(reportSchedules.isActive, true), lte(reportSchedules.nextRunAt, new Date())));
   const [email, company] = await Promise.all([getSetting("email"), getSetting("company")]);
-  const msgs = he as unknown as { reports: { names: Record<string, string>; columns: Record<string, string>; generated_at: string; total: string } };
+  const msgs = he as unknown as { reports: { names: Record<string, Record<string, string>>; columns: Record<string, string>; generated_at: string; total: string } };
   let ok = 0;
   for (const { s, t } of due) {
     try {

@@ -114,7 +114,10 @@
     "email": "E-mail",
     "phone": "Phone",
     "department": "Department",
-    "grade": "Grade"
+    "grade": "Grade",
+    "select_all": "Select all",
+    "selected_count": "{count} selected",
+    "no_matches": "No matches"
   },
   "errors": {
     "validation": "Please fix the highlighted fields",
@@ -645,61 +648,109 @@
     "already_linked": "User already signed in"
   },
   "capabilities": {
-    "hours.report_own": "Report own hours",
-    "hours.report_for_others": "Report hours for others",
-    "hours.view_others": "View others' hours",
-    "hours.edit_locked": "Edit/unlock locked periods",
-    "reports.hours": "Hours reports",
-    "reports.financial": "Financial reports",
-    "reports.schedule": "Schedule reports",
-    "clients.view": "View clients",
-    "clients.edit": "Edit clients",
-    "suppliers.view": "View suppliers",
-    "suppliers.edit": "Edit suppliers",
-    "projects.view": "View projects",
-    "projects.edit": "Edit projects",
-    "contracts.view": "View contracts",
-    "contracts.edit": "Edit contracts",
-    "contracts.unlock": "Unlock locked contracts",
-    "assignments.manage": "Manage assignments",
-    "invoices.view": "View invoices",
-    "invoices.create": "Create invoices",
-    "invoices.approve": "Approve invoices",
-    "invoices.sign": "Sign invoices",
-    "invoices.send": "Send invoices",
-    "invoices.cancel": "Cancel invoices",
-    "receipts.manage": "Manage receipts",
-    "supplier_invoices.manage": "Manage supplier invoices",
-    "supplier_invoices.approve": "Approve supplier invoices",
-    "dashboard.financial": "Financial dashboard",
-    "settings.manage": "Manage settings",
-    "users.manage": "Manage users",
-    "audit.view": "Audit log",
-    "import.run": "Run imports"
+    "hours": {
+      "report_own": "Report own hours",
+      "report_for_others": "Report hours for others",
+      "view_others": "View others' hours",
+      "edit_locked": "Edit/unlock locked periods"
+    },
+    "reports": {
+      "hours": "Hours reports",
+      "financial": "Financial reports",
+      "schedule": "Schedule reports"
+    },
+    "clients": {
+      "view": "View clients",
+      "edit": "Edit clients"
+    },
+    "suppliers": {
+      "view": "View suppliers",
+      "edit": "Edit suppliers"
+    },
+    "projects": {
+      "view": "View projects",
+      "edit": "Edit projects"
+    },
+    "contracts": {
+      "view": "View contracts",
+      "edit": "Edit contracts",
+      "unlock": "Unlock locked contracts"
+    },
+    "assignments": {
+      "manage": "Manage assignments"
+    },
+    "invoices": {
+      "view": "View invoices",
+      "create": "Create invoices",
+      "approve": "Approve invoices",
+      "sign": "Sign invoices",
+      "send": "Send invoices",
+      "cancel": "Cancel invoices"
+    },
+    "receipts": {
+      "manage": "Manage receipts"
+    },
+    "supplier_invoices": {
+      "manage": "Manage supplier invoices",
+      "approve": "Approve supplier invoices"
+    },
+    "dashboard": {
+      "financial": "Financial dashboard"
+    },
+    "settings": {
+      "manage": "Manage settings"
+    },
+    "users": {
+      "manage": "Manage users"
+    },
+    "audit": {
+      "view": "Audit log"
+    },
+    "import": {
+      "run": "Run imports"
+    }
   },
   "notification_events": {
-    "invoice.pending_approval": "Invoice pending approval",
-    "invoice.approved": "Invoice approved",
-    "invoice.signed": "Invoice signed",
-    "invoice.sent": "Invoice sent",
-    "invoice.email_failed": "Invoice e-mail bounced/failed",
-    "invoice.overdue": "Invoice overdue",
-    "invoice.retainer_draft": "Retainer draft created",
-    "invoice.cancelled": "Invoice cancelled",
-    "hours.reminder": "Hours reminder",
-    "hours.month_locked": "Month locked – missing summary",
-    "hours.period_unlocked": "Period unlocked for employee",
-    "hours.reported_for_you": "Hours reported on your behalf",
-    "contract.progress": "Contract reached 80%/100% billed",
-    "supplier.over_budget": "Supplier over budget",
-    "supplier.progress_vs_client": "Supplier progress exceeds client billing",
-    "supplier_invoice.pending_approval": "Supplier invoice awaiting your approval",
-    "supplier_invoice.decided": "Supplier invoice approved/rejected",
-    "index.fetch_failed": "Index fetch failed",
-    "index.missing": "Index value missing",
-    "note.mention": "@mention in a status note",
-    "report.schedule_failed": "Scheduled report failed",
-    "backup.failed": "Backup failed",
+    "invoice": {
+      "pending_approval": "Invoice pending approval",
+      "approved": "Invoice approved",
+      "signed": "Invoice signed",
+      "sent": "Invoice sent",
+      "email_failed": "Invoice e-mail bounced/failed",
+      "overdue": "Invoice overdue",
+      "retainer_draft": "Retainer draft created",
+      "cancelled": "Invoice cancelled"
+    },
+    "hours": {
+      "reminder": "Hours reminder",
+      "month_locked": "Month locked – missing summary",
+      "period_unlocked": "Period unlocked for employee",
+      "reported_for_you": "Hours reported on your behalf"
+    },
+    "contract": {
+      "progress": "Contract reached 80%/100% billed"
+    },
+    "supplier": {
+      "over_budget": "Supplier over budget",
+      "progress_vs_client": "Supplier progress exceeds client billing"
+    },
+    "supplier_invoice": {
+      "pending_approval": "Supplier invoice awaiting your approval",
+      "decided": "Supplier invoice approved/rejected"
+    },
+    "index": {
+      "fetch_failed": "Index fetch failed",
+      "missing": "Index value missing"
+    },
+    "note": {
+      "mention": "@mention in a status note"
+    },
+    "report": {
+      "schedule_failed": "Scheduled report failed"
+    },
+    "backup": {
+      "failed": "Backup failed"
+    },
     "system": "System"
   },
   "documents": {
@@ -1324,30 +1375,40 @@
   "reports": {
     "title": "Reports",
     "names": {
-      "hours.monthly_by_employee": "Monthly by employee",
-      "hours.employees_projects": "Employees–projects",
-      "hours.by_project": "Hours by project",
-      "hours.project_summary": "Project hours summary",
-      "hours.project_matrix": "Project hours matrix",
-      "hours.matrix_summary": "Matrix summary",
-      "hours.by_client": "Hours by client",
-      "hours.detailed": "Detailed hours",
-      "hours.by_department": "Department breakdown",
-      "hours.missing": "Missing reports",
-      "fin.contract_balances": "Contract balances",
-      "fin.hours_and_cost": "Hours & cost",
-      "fin.cost_by_project": "Cost by project",
-      "fin.profit_by_client": "Client profitability",
-      "fin.profit_by_project": "Project profitability",
-      "fin.profit_by_subcontract": "Sub-contract profitability",
-      "fin.income_plan_vs_actual": "Income – plan vs actual",
-      "fin.invoices": "Invoices",
-      "fin.aging": "Receivables aging",
-      "fin.receipts": "Receipts",
-      "sup.budget_vs_actual": "Suppliers – budget vs actual",
-      "sup.invoices": "Supplier invoices",
-      "payroll.export": "Payroll export",
-      "sys.audit": "Audit log"
+      "hours": {
+        "monthly_by_employee": "Monthly by employee",
+        "employees_projects": "Employees–projects",
+        "by_project": "Hours by project",
+        "project_summary": "Project hours summary",
+        "project_matrix": "Project hours matrix",
+        "matrix_summary": "Matrix summary",
+        "by_client": "Hours by client",
+        "detailed": "Detailed hours",
+        "by_department": "Department breakdown",
+        "missing": "Missing reports"
+      },
+      "fin": {
+        "contract_balances": "Contract balances",
+        "hours_and_cost": "Hours & cost",
+        "cost_by_project": "Cost by project",
+        "profit_by_client": "Client profitability",
+        "profit_by_project": "Project profitability",
+        "profit_by_subcontract": "Sub-contract profitability",
+        "income_plan_vs_actual": "Income – plan vs actual",
+        "invoices": "Invoices",
+        "aging": "Receivables aging",
+        "receipts": "Receipts"
+      },
+      "sup": {
+        "budget_vs_actual": "Suppliers – budget vs actual",
+        "invoices": "Supplier invoices"
+      },
+      "payroll": {
+        "export": "Payroll export"
+      },
+      "sys": {
+        "audit": "Audit log"
+      }
     },
     "columns": {
       "name": "Name",
@@ -1500,6 +1561,7 @@
     "format": "Format",
     "recipients": "Recipients (e-mails)",
     "failed": "Failed",
-    "compare_needs_range": "Comparison requires a date range"
+    "compare_needs_range": "Comparison requires a date range",
+    "clear_filters": "Clear all filters"
   }
 }

@@ -114,7 +114,10 @@
     "email": "דוא\"ל",
     "phone": "טלפון",
     "department": "מחלקה",
-    "grade": "דרגה"
+    "grade": "דרגה",
+    "select_all": "בחר הכל",
+    "selected_count": "נבחרו {count}",
+    "no_matches": "אין תוצאות"
   },
   "errors": {
     "validation": "יש לתקן את השדות המסומנים",
@@ -645,61 +648,109 @@
     "already_linked": "המשתמש כבר נכנס למערכת"
   },
   "capabilities": {
-    "hours.report_own": "דיווח שעות לעצמו",
-    "hours.report_for_others": "דיווח שעות בשם עובדים אחרים",
-    "hours.view_others": "צפייה בשעות של עובדים אחרים",
-    "hours.edit_locked": "עריכה/פתיחה של תקופה נעולה",
-    "reports.hours": "דוחות שעות",
-    "reports.financial": "דוחות כספיים",
-    "reports.schedule": "תזמון דוחות",
-    "clients.view": "צפייה בלקוחות",
-    "clients.edit": "עריכת לקוחות",
-    "suppliers.view": "צפייה בספקים",
-    "suppliers.edit": "עריכת ספקים",
-    "projects.view": "צפייה בפרויקטים",
-    "projects.edit": "עריכת פרויקטים",
-    "contracts.view": "צפייה בחוזים",
-    "contracts.edit": "עריכת חוזים",
-    "contracts.unlock": "פתיחת חוזה/תת-חוזה נעול",
-    "assignments.manage": "הקצאת עובדים לתתי-חוזים",
-    "invoices.view": "צפייה בחשבונות",
-    "invoices.create": "יצירת חשבונות",
-    "invoices.approve": "אישור חשבונות",
-    "invoices.sign": "חתימה על חשבונות",
-    "invoices.send": "שליחת חשבונות",
-    "invoices.cancel": "ביטול חשבונות",
-    "receipts.manage": "ניהול תקבולים",
-    "supplier_invoices.manage": "ניהול חשבוניות ספקים",
-    "supplier_invoices.approve": "אישור חשבוניות ספקים",
-    "dashboard.financial": "דשבורד כספי",
-    "settings.manage": "ניהול הגדרות",
-    "users.manage": "ניהול משתמשים",
-    "audit.view": "יומן שינויים",
-    "import.run": "ייבוא נתונים"
+    "hours": {
+      "report_own": "דיווח שעות לעצמו",
+      "report_for_others": "דיווח שעות בשם עובדים אחרים",
+      "view_others": "צפייה בשעות של עובדים אחרים",
+      "edit_locked": "עריכה/פתיחה של תקופה נעולה"
+    },
+    "reports": {
+      "hours": "דוחות שעות",
+      "financial": "דוחות כספיים",
+      "schedule": "תזמון דוחות"
+    },
+    "clients": {
+      "view": "צפייה בלקוחות",
+      "edit": "עריכת לקוחות"
+    },
+    "suppliers": {
+      "view": "צפייה בספקים",
+      "edit": "עריכת ספקים"
+    },
+    "projects": {
+      "view": "צפייה בפרויקטים",
+      "edit": "עריכת פרויקטים"
+    },
+    "contracts": {
+      "view": "צפייה בחוזים",
+      "edit": "עריכת חוזים",
+      "unlock": "פתיחת חוזה/תת-חוזה נעול"
+    },
+    "assignments": {
+      "manage": "הקצאת עובדים לתתי-חוזים"
+    },
+    "invoices": {
+      "view": "צפייה בחשבונות",
+      "create": "יצירת חשבונות",
+      "approve": "אישור חשבונות",
+      "sign": "חתימה על חשבונות",
+      "send": "שליחת חשבונות",
+      "cancel": "ביטול חשבונות"
+    },
+    "receipts": {
+      "manage": "ניהול תקבולים"
+    },
+    "supplier_invoices": {
+      "manage": "ניהול חשבוניות ספקים",
+      "approve": "אישור חשבוניות ספקים"
+    },
+    "dashboard": {
+      "financial": "דשבורד כספי"
+    },
+    "settings": {
+      "manage": "ניהול הגדרות"
+    },
+    "users": {
+      "manage": "ניהול משתמשים"
+    },
+    "audit": {
+      "view": "יומן שינויים"
+    },
+    "import": {
+      "run": "ייבוא נתונים"
+    }
   },
   "notification_events": {
-    "invoice.pending_approval": "חשבון ממתין לאישור",
-    "invoice.approved": "חשבון אושר",
-    "invoice.signed": "חשבון נחתם",
-    "invoice.sent": "חשבון נשלח",
-    "invoice.email_failed": "מייל חשבון נדחה/נכשל",
-    "invoice.overdue": "חשבון באיחור",
-    "invoice.retainer_draft": "טיוטת ריטיינר נוצרה",
-    "invoice.cancelled": "חשבון בוטל",
-    "hours.reminder": "תזכורת דיווח שעות",
-    "hours.month_locked": "חודש ננעל – סיכום חסרים",
-    "hours.period_unlocked": "תקופה נפתחה לעובד",
-    "hours.reported_for_you": "דיווח הוזן בשמך",
-    "contract.progress": "חוזה הגיע ל-80%/100% הגשה",
-    "supplier.over_budget": "ספק חרג מתקציב",
-    "supplier.progress_vs_client": "ביצוע ספק גבוה מחיוב ללקוח",
-    "supplier_invoice.pending_approval": "חשבונית ספק ממתינה לאישורך",
-    "supplier_invoice.decided": "חשבונית ספק אושרה/נדחתה",
-    "index.fetch_failed": "כשל משיכת מדד",
-    "index.missing": "חסר מדד לחודש",
-    "note.mention": "@אזכור בהערת סטטוס",
-    "report.schedule_failed": "דוח מתוזמן נכשל",
-    "backup.failed": "כשל גיבוי",
+    "invoice": {
+      "pending_approval": "חשבון ממתין לאישור",
+      "approved": "חשבון אושר",
+      "signed": "חשבון נחתם",
+      "sent": "חשבון נשלח",
+      "email_failed": "מייל חשבון נדחה/נכשל",
+      "overdue": "חשבון באיחור",
+      "retainer_draft": "טיוטת ריטיינר נוצרה",
+      "cancelled": "חשבון בוטל"
+    },
+    "hours": {
+      "reminder": "תזכורת דיווח שעות",
+      "month_locked": "חודש ננעל – סיכום חסרים",
+      "period_unlocked": "תקופה נפתחה לעובד",
+      "reported_for_you": "דיווח הוזן בשמך"
+    },
+    "contract": {
+      "progress": "חוזה הגיע ל-80%/100% הגשה"
+    },
+    "supplier": {
+      "over_budget": "ספק חרג מתקציב",
+      "progress_vs_client": "ביצוע ספק גבוה מחיוב ללקוח"
+    },
+    "supplier_invoice": {
+      "pending_approval": "חשבונית ספק ממתינה לאישורך",
+      "decided": "חשבונית ספק אושרה/נדחתה"
+    },
+    "index": {
+      "fetch_failed": "כשל משיכת מדד",
+      "missing": "חסר מדד לחודש"
+    },
+    "note": {
+      "mention": "@אזכור בהערת סטטוס"
+    },
+    "report": {
+      "schedule_failed": "דוח מתוזמן נכשל"
+    },
+    "backup": {
+      "failed": "כשל גיבוי"
+    },
     "system": "מערכת"
   },
   "documents": {
@@ -1324,30 +1375,40 @@
   "reports": {
     "title": "דוחות",
     "names": {
-      "hours.monthly_by_employee": "חודשי לעובד",
-      "hours.employees_projects": "עובדים–פרויקטים",
-      "hours.by_project": "שעות לפי פרויקט",
-      "hours.project_summary": "סיכום שעות לפי פרויקט",
-      "hours.project_matrix": "מטריצת שעות לפרויקט",
-      "hours.matrix_summary": "סיכום שעות מטריצוני",
-      "hours.by_client": "שעות לפי לקוח",
-      "hours.detailed": "שעות מפורט",
-      "hours.by_department": "פילוח מחלקות",
-      "hours.missing": "דיווח חסר",
-      "fin.contract_balances": "יתרות חוזים",
-      "fin.hours_and_cost": "שעות ועלות",
-      "fin.cost_by_project": "עלות לפי פרויקט",
-      "fin.profit_by_client": "רווחיות לקוח",
-      "fin.profit_by_project": "רווחיות פרויקט",
-      "fin.profit_by_subcontract": "רווחיות לפי תת-חוזה",
-      "fin.income_plan_vs_actual": "הכנסות – תכנון מול בפועל",
-      "fin.invoices": "חשבונות",
-      "fin.aging": "גיול חובות",
-      "fin.receipts": "תקבולים",
-      "sup.budget_vs_actual": "ספקים – תקציב מול בפועל",
-      "sup.invoices": "חשבוניות ספקים",
-      "payroll.export": "ייצוא שכר",
-      "sys.audit": "יומן שינויים"
+      "hours": {
+        "monthly_by_employee": "חודשי לעובד",
+        "employees_projects": "עובדים–פרויקטים",
+        "by_project": "שעות לפי פרויקט",
+        "project_summary": "סיכום שעות לפי פרויקט",
+        "project_matrix": "מטריצת שעות לפרויקט",
+        "matrix_summary": "סיכום שעות מטריצוני",
+        "by_client": "שעות לפי לקוח",
+        "detailed": "שעות מפורט",
+        "by_department": "פילוח מחלקות",
+        "missing": "דיווח חסר"
+      },
+      "fin": {
+        "contract_balances": "יתרות חוזים",
+        "hours_and_cost": "שעות ועלות",
+        "cost_by_project": "עלות לפי פרויקט",
+        "profit_by_client": "רווחיות לקוח",
+        "profit_by_project": "רווחיות פרויקט",
+        "profit_by_subcontract": "רווחיות לפי תת-חוזה",
+        "income_plan_vs_actual": "הכנסות – תכנון מול בפועל",
+        "invoices": "חשבונות",
+        "aging": "גיול חובות",
+        "receipts": "תקבולים"
+      },
+      "sup": {
+        "budget_vs_actual": "ספקים – תקציב מול בפועל",
+        "invoices": "חשבוניות ספקים"
+      },
+      "payroll": {
+        "export": "ייצוא שכר"
+      },
+      "sys": {
+        "audit": "יומן שינויים"
+      }
     },
     "columns": {
       "name": "שם",
@@ -1500,6 +1561,7 @@
     "format": "פורמט",
     "recipients": "נמענים (מיילים)",
     "failed": "נכשל",
-    "compare_needs_range": "השוואה דורשת טווח תאריכים"
+    "compare_needs_range": "השוואה דורשת טווח תאריכים",
+    "clear_filters": "נקה את כל המסננים"
   }
 }

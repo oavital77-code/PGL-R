@@ -155,6 +155,19 @@ describe.skipIf(!process.env.DATABASE_URL)("invoice approval chain", () => {
     expect(currentStation(await load(id))?.key).toBe("project_manager");
   });
 
+  it("an index-linked draft without index values passes every station but the last (customer decision 20/09/2026)", async () => {
+    const id = await mkDraft();
+    await db.update(s.invoices).set({ indexLinked: true, indexBaseValue: null, indexCurrentValue: null }).where(eq(s.invoices.id, id));
+    expect(await submitDraft({ id: u.admin, role: "admin" }, id)).toBe("pending_approval");
+    expect(await decide({ id: u.pm, role: "manager" }, id, "approved", null)).toBe("pending_approval");
+    expect(await decide({ id: u.eco, role: "employee" }, id, "approved", null)).toBe("pending_approval");
+    // the final approval fixes the amounts, so it needs the index
+    await expect(decide({ id: u.ceo, role: "admin" }, id, "approved", null)).rejects.toMatchObject({ code: "invoices.missing_index" });
+    expect(currentStation(await load(id))?.key).toBe("ceo");
+    await db.update(s.invoices).set({ indexBaseValue: "104.8000", indexCurrentValue: "105.8000" }).where(eq(s.invoices.id, id));
+    expect(await decide({ id: u.ceo, role: "admin" }, id, "approved", null)).toBe("approved");
+  });
+
   it("refuses to submit when the project has no manager, and approves at once with no stations", async () => {
     const id = await mkDraft();
     await db.update(s.projects).set({ projectManagerUserId: null }).where(eq(s.projects.id, projectId));

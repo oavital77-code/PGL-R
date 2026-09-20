@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import * as React from "react";
 import { toast } from "sonner";
-import { createInvoiceDraftAction } from "@/lib/invoices/actions";
+import { createInvoiceDraftAction, submitForApprovalAction } from "@/lib/invoices/actions";
 import type { invoiceableContracts } from "@/lib/invoices/queries";
 import { formatMoney } from "@/lib/i18n/format";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,20 @@ export function NewInvoiceWizard({ contracts, initialQuery, preselect, today, de
     if (contract) setSubs(new Set(contract.subContracts.filter((s) => !s.terminal && s.statusCode !== "completed" && s.statusCode !== "cancelled").map((s) => s.id)));
   }, [contract]);
   const needsPeriod = contract?.subContracts.some((s) => subs.has(s.id) && s.pricingMethod !== "fixed_price" && s.pricingMethod !== "pct_of_cost");
+  // milestone-based lines start at 0 % and need the progress typed on the draft; hours,
+  // retainer and unit lines come out of the wizard with their amounts and can go straight to approval
+  const autoAmounts = !!contract && subs.size > 0 && contract.subContracts.every((s) => !subs.has(s.id) || (s.pricingMethod !== "fixed_price" && s.pricingMethod !== "pct_of_cost"));
+  const create = (submit: boolean) =>
+    start(async () => {
+      const res = await createInvoiceDraftAction({ contractId: contract!.id, subContractIds: [...subs], invoiceDate, periodFrom: needsPeriod ? from : undefined, periodTo: needsPeriod ? to : undefined });
+      if (!res.ok) return void toast.error(tAll.has(res.error) ? tAll(res.error) : res.error);
+      if (submit) {
+        const sub = await submitForApprovalAction(res.data.id);
+        if (!sub.ok) toast.error(tAll.has(sub.error) ? tAll(sub.error) : sub.error);
+        else toast.success(t("submitted"));
+      } else toast.success(tc("saved"));
+      router.push(`/invoices/${res.data.id}`);
+    });
   const filtered = q ? contracts.filter((c) => `${c.workNumber} ${c.projectName} ${c.clientName} ${c.name}`.includes(q)) : contracts;
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_380px]">
@@ -90,20 +104,17 @@ export function NewInvoiceWizard({ contracts, initialQuery, preselect, today, de
                   </Field>
                 </div>
               ) : null}
-              <Button
-                disabled={pending || subs.size === 0}
-                onClick={() =>
-                  start(async () => {
-                    const res = await createInvoiceDraftAction({ contractId: contract.id, subContractIds: [...subs], invoiceDate, periodFrom: needsPeriod ? from : undefined, periodTo: needsPeriod ? to : undefined });
-                    if (res.ok) {
-                      toast.success(tc("saved"));
-                      router.push(`/invoices/${res.data.id}`);
-                    } else toast.error(tAll.has(res.error) ? tAll(res.error) : res.error);
-                  })
-                }
-              >
-                {t("create_draft")}
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button disabled={pending || subs.size === 0} onClick={() => create(false)}>
+                  {t("create_draft")}
+                </Button>
+                {autoAmounts ? (
+                  <Button variant="secondary" disabled={pending} onClick={() => create(true)}>
+                    {t("create_and_submit")}
+                  </Button>
+                ) : null}
+              </div>
+              <p className="text-xs text-muted-foreground">{autoAmounts ? t("create_and_submit_hint") : t("create_draft_hint")}</p>
             </>
           )}
         </CardContent>

@@ -331,6 +331,7 @@ export async function signInvoiceAction(id: string, signerUserId?: string): Prom
     const user = await requireCapability("invoices.sign");
     const inv = await loadInvoice(id);
     if (inv.status !== "approved") throw new BusinessRuleError("invoices.invalid_transition");
+    if (inv.indexLinked && (!inv.indexCurrentValue || !inv.indexBaseValue)) throw new BusinessRuleError("invoices.missing_index");
     const settings = await getSettingFresh("invoices");
     const signerId = signerUserId ?? settings.default_signer_user_id ?? user.id;
     const [signer] = await db.select().from(users).where(and(eq(users.id, signerId), eq(users.isActive, true)));

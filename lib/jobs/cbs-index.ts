@@ -6,6 +6,7 @@ import { adminUserIds } from "@/lib/notifications/service";
 import { notifyEvent } from "@/lib/email/notify-email";
 import { previousMonth, toMonthKey } from "@/lib/calc/index-linkage";
 import { todayLocal } from "@/lib/i18n/format";
+import { parseCbsResponse, type CbsMonth } from "./cbs-parse";
 
 /**
  * Israel CBS (Central Bureau of Statistics) – Consumer Price Index, general index (series 120010).
@@ -13,34 +14,6 @@ import { todayLocal } from "@/lib/i18n/format";
  * The response shape changed in the past – we parse defensively and alert admins on failure (spec §11.7).
  */
 const SERIES_ID = "120010";
-
-interface CbsMonth {
-  month: string; // yyyy-mm-01
-  value: number;
-}
-
-function parseCbsResponse(json: unknown): CbsMonth[] {
-  const out: CbsMonth[] = [];
-  const visit = (node: unknown) => {
-    if (!node || typeof node !== "object") return;
-    if (Array.isArray(node)) {
-      node.forEach(visit);
-      return;
-    }
-    const o = node as Record<string, unknown>;
-    const year = o.year ?? o.Year ?? o.TimePeriodYear;
-    const month = o.month ?? o.Month ?? o.TimePeriodMonth;
-    const value = o.value ?? o.Value ?? o.currBase?.toString?.() ?? (o.currBase as { value?: unknown } | undefined)?.value;
-    if (year && month && value !== undefined && value !== null && !Number.isNaN(Number(value))) {
-      out.push({ month: `${year}-${String(month).padStart(2, "0")}-01`, value: Number(value) });
-    }
-    for (const v of Object.values(o)) if (v && typeof v === "object") visit(v);
-  };
-  visit(json);
-  const uniq = new Map<string, number>();
-  for (const m of out) uniq.set(m.month, m.value);
-  return [...uniq.entries()].map(([month, value]) => ({ month, value })).sort((a, b) => (a.month < b.month ? -1 : 1));
-}
 
 export async function fetchCpiFromCbs(opts: { actingUserId?: string | null; months?: number } = {}): Promise<number> {
   const base = process.env.CBS_API_BASE_URL ?? "https://api.cbs.gov.il";

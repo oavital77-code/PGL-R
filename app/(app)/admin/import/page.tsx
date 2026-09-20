@@ -60,11 +60,11 @@ export default async function ImportPage() {
                 {batches.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">{tc("none")}</TableCell></TableRow> : null}
                 {batches.map(({ b, runBy }) => (
                   <TableRow key={b.id}>
-                    <TableCell className="num text-xs">{f.dateTime(b.createdAt, { dateStyle: "short", timeStyle: "short" })}</TableCell>
+                    <TableCell className="num-cell text-xs">{f.dateTime(b.createdAt, { dateStyle: "short", timeStyle: "short" })}</TableCell>
                     <TableCell>{IMPORT_ENTITIES.find((e) => e.key === b.entity)?.label ?? b.entity}</TableCell>
                     <TableCell><Badge variant={b.status === "done" ? "success" : b.status === "ready" ? "secondary" : b.status === "failed" ? "destructive" : "muted"}>{t(`status.${b.status}`)}</Badge></TableCell>
-                    <TableCell className="num">{b.rowsOk}/{b.rowsTotal}</TableCell>
-                    <TableCell className="num">{b.rowsFailed > 0 || (b.log as { error?: string }).error ? <a href={`/api/imports/errors?batch=${b.id}`} className="text-destructive hover:underline">{b.rowsFailed} ↓</a> : "—"}</TableCell>
+                    <TableCell className="num-cell">{b.rowsOk}/{b.rowsTotal}</TableCell>
+                    <TableCell className="num-cell">{b.rowsFailed > 0 || (b.log as { error?: string }).error ? <a href={`/api/imports/errors?batch=${b.id}`} className="text-destructive hover:underline">{b.rowsFailed} ↓</a> : "—"}</TableCell>
                     <TableCell>{runBy ?? "—"}</TableCell>
                     <TableCell className="text-end"><BatchActions id={b.id} status={b.status} /></TableCell>
                   </TableRow>

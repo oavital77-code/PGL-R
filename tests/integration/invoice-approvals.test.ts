@@ -30,7 +30,11 @@ describe.skipIf(!process.env.DATABASE_URL)("invoice approval chain", () => {
     return row!.id;
   }
 
+  // each draft bills a different milestone: a draft already counts as prior progress
+  // (DEVIATIONS 18/09/2026), so billing the same one twice would exceed 100 %
+  let drafts = 0;
   async function mkDraft() {
+    const slot = drafts++;
     return withUser({ userId: u.admin }, async (tx) => {
       const num = await allocateInvoiceNumber(tx, u.admin, "2026-11-01");
       const [c] = await tx.select({ clientId: s.contracts.clientId }).from(s.contracts).where(eq(s.contracts.id, contractId));
@@ -38,7 +42,7 @@ describe.skipIf(!process.env.DATABASE_URL)("invoice approval chain", () => {
       const [ctx] = await loadSubContractContexts(tx, [tabaId]);
       const lines = await buildMilestoneLines(tx, ctx!, 1);
       await tx.insert(s.invoiceLines).values(lines.map((l) => ({ ...l, invoiceId: inv!.id, createdBy: u.admin })));
-      const first = lines[0]!;
+      const first = lines[slot]!;
       await tx.update(s.invoiceLines).set({ progressPctThis: "100", amountThis: first.stageAmount ?? "0" }).where(and(eq(s.invoiceLines.invoiceId, inv!.id), eq(s.invoiceLines.milestoneId, first.milestoneId!)));
       await recomputeInvoice(tx, inv!.id);
       return inv!.id;

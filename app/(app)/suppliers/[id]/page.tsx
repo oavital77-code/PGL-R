@@ -105,8 +105,8 @@ export default async function SupplierPage({ params }: { params: Promise<{ id: s
                         {r.c.numberInProject}. {r.c.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="num">{formatMoney(r.c.budgetAmount)}</TableCell>
-                    <TableCell className="num">{formatDate(r.c.signedDate)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(r.c.budgetAmount)}</TableCell>
+                    <TableCell className="num-cell">{formatDate(r.c.signedDate)}</TableCell>
                   </TableRow>
                 ))
               )}
@@ -135,7 +135,7 @@ export default async function SupplierPage({ params }: { params: Promise<{ id: s
               ) : (
                 invs.map((r) => (
                   <TableRow key={r.i.id}>
-                    <TableCell className="num">
+                    <TableCell className="num-cell">
                       <Link href={`/supplier-invoices/${r.i.id}`} className="text-primary hover:underline">
                         {r.i.supplierInvoiceNumber}
                       </Link>
@@ -143,9 +143,9 @@ export default async function SupplierPage({ params }: { params: Promise<{ id: s
                     <TableCell>
                       <span className="num">{r.workNumber}</span> – {r.contractName}
                     </TableCell>
-                    <TableCell className="num">{formatDate(r.i.invoiceDate)}</TableCell>
-                    <TableCell className="num">{formatMoney(r.i.amountBeforeVat)}</TableCell>
-                    <TableCell className="num">{formatPct(r.i.progressPctClaimed)}</TableCell>
+                    <TableCell className="num-cell">{formatDate(r.i.invoiceDate)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(r.i.amountBeforeVat)}</TableCell>
+                    <TableCell className="num-cell">{formatPct(r.i.progressPctClaimed)}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">{ts(r.i.status)}</Badge>
                     </TableCell>

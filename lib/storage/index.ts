@@ -143,3 +143,15 @@ export async function ensureBuckets() {
   const existing = new Set((data ?? []).map((b) => b.name));
   for (const b of BUCKETS) if (!existing.has(b)) await sb.storage.createBucket(b, { public: false });
 }
+
+/**
+ * Lists the buckets with the service key – the cheapest call that proves the key is accepted.
+ * A malformed key surfaces here as the storage API's own message ("Invalid Compact JWS" for a
+ * key that is not a JWT), which is what an invoice upload would fail with.
+ */
+export async function probeStorage(): Promise<{ buckets: number }> {
+  const { data, error } = await supabase().storage.listBuckets();
+  if (error) throw new Error(error.message);
+  return { buckets: data.length };
+}
+

@@ -155,7 +155,7 @@ export function MilestonesEditor({ subContractId, base, defaultDiscount, rows, s
               const orig = rows.find((x) => x.id === r.id);
               return (
                 <TableRow key={r.id ?? `new-${i}`} className={cn(r.hasInvoiceLines && edit && "bg-amber-50")}>
-                  <TableCell className="num">{i + 1}</TableCell>
+                  <TableCell className="num-cell">{i + 1}</TableCell>
                   <TableCell>
                     {edit ? (
                       <div className="flex flex-col gap-1">
@@ -171,16 +171,16 @@ export function MilestonesEditor({ subContractId, base, defaultDiscount, rows, s
                       r.name
                     )}
                   </TableCell>
-                  <TableCell className="num">{edit ? <Input type="number" step="0.001" min="0" max="100" value={r.pctOfSubcontract} onChange={(e) => upd(i, { pctOfSubcontract: Number(e.target.value) })} className="w-24" /> : formatPct(r.pctOfSubcontract, 3)}</TableCell>
-                  <TableCell className="num">{formatMoney(amount)}</TableCell>
-                  <TableCell className="num">{edit ? <Input type="number" step="0.01" min="0" max="100" value={r.discountPct ?? ""} placeholder={String(defaultDiscount)} onChange={(e) => upd(i, { discountPct: e.target.value === "" ? null : Number(e.target.value) })} className="w-20" /> : formatPct(r.discountPct ?? defaultDiscount, 2)}</TableCell>
-                  <TableCell className="num font-medium">{formatMoney(total)}</TableCell>
-                  <TableCell className="num">{edit ? <Input type="number" step="0.001" min="0" max="100" value={r.openingBilledPct} onChange={(e) => upd(i, { openingBilledPct: Number(e.target.value) })} className="w-20" /> : formatPct(r.openingBilledPct, 3)}</TableCell>
-                  <TableCell className="num">{formatPct(orig?.billedPct ?? 0, 3)}</TableCell>
-                  <TableCell className="num">{formatMoney(orig?.billedAmount ?? 0)}</TableCell>
-                  <TableCell className="num">{edit ? <Input type="number" step="0.01" min="0" value={r.openingPaidAmount} onChange={(e) => upd(i, { openingPaidAmount: Number(e.target.value) })} className="w-24" title={t("opening_paid")} /> : formatMoney(orig?.paidAmount ?? 0)}</TableCell>
-                  <TableCell className="num">{formatMoney(total - (orig?.billedAmount ?? 0))}</TableCell>
-                  <TableCell className="num">{edit ? <Input type="date" value={r.expectedDate ?? ""} onChange={(e) => upd(i, { expectedDate: e.target.value || null })} className="w-36" /> : r.expectedDate ? r.expectedDate.split("-").reverse().join("/") : "—"}</TableCell>
+                  <TableCell className="num-cell">{edit ? <Input type="number" step="0.001" min="0" max="100" value={r.pctOfSubcontract} onChange={(e) => upd(i, { pctOfSubcontract: Number(e.target.value) })} className="w-24" /> : formatPct(r.pctOfSubcontract, 3)}</TableCell>
+                  <TableCell className="num-cell">{formatMoney(amount)}</TableCell>
+                  <TableCell className="num-cell">{edit ? <Input type="number" step="0.01" min="0" max="100" value={r.discountPct ?? ""} placeholder={String(defaultDiscount)} onChange={(e) => upd(i, { discountPct: e.target.value === "" ? null : Number(e.target.value) })} className="w-20" /> : formatPct(r.discountPct ?? defaultDiscount, 2)}</TableCell>
+                  <TableCell className="num-cell font-medium">{formatMoney(total)}</TableCell>
+                  <TableCell className="num-cell">{edit ? <Input type="number" step="0.001" min="0" max="100" value={r.openingBilledPct} onChange={(e) => upd(i, { openingBilledPct: Number(e.target.value) })} className="w-20" /> : formatPct(r.openingBilledPct, 3)}</TableCell>
+                  <TableCell className="num-cell">{formatPct(orig?.billedPct ?? 0, 3)}</TableCell>
+                  <TableCell className="num-cell">{formatMoney(orig?.billedAmount ?? 0)}</TableCell>
+                  <TableCell className="num-cell">{edit ? <Input type="number" step="0.01" min="0" value={r.openingPaidAmount} onChange={(e) => upd(i, { openingPaidAmount: Number(e.target.value) })} className="w-24" title={t("opening_paid")} /> : formatMoney(orig?.paidAmount ?? 0)}</TableCell>
+                  <TableCell className="num-cell">{formatMoney(total - (orig?.billedAmount ?? 0))}</TableCell>
+                  <TableCell className="num-cell">{edit ? <Input type="date" value={r.expectedDate ?? ""} onChange={(e) => upd(i, { expectedDate: e.target.value || null })} className="w-36" /> : r.expectedDate ? r.expectedDate.split("-").reverse().join("/") : "—"}</TableCell>
                   {edit ? (
                     <TableCell className="whitespace-nowrap">
                       <Button variant="ghost" size="icon" onClick={() => move(i, -1)}><ArrowUp className="h-4 w-4" /></Button>
@@ -197,13 +197,13 @@ export function MilestonesEditor({ subContractId, base, defaultDiscount, rows, s
           <TableRow>
             <TableCell colSpan={2}>{tc("total")}</TableCell>
             <TableCell className={cn("num", Math.abs(sumPct - 100) < 0.0005 ? "text-success" : "text-warning")}>{formatPct(sumPct, 3)}</TableCell>
-            <TableCell className="num">{formatMoney(sumAmount)}</TableCell>
+            <TableCell className="num-cell">{formatMoney(sumAmount)}</TableCell>
             <TableCell />
-            <TableCell className="num">{formatMoney(sumTotal)}</TableCell>
+            <TableCell className="num-cell">{formatMoney(sumTotal)}</TableCell>
             <TableCell colSpan={2} />
-            <TableCell className="num">{formatMoney(sumBilled)}</TableCell>
-            <TableCell className="num">{formatMoney(sumPaid)}</TableCell>
-            <TableCell className="num">{formatMoney(sumTotal - sumBilled)}</TableCell>
+            <TableCell className="num-cell">{formatMoney(sumBilled)}</TableCell>
+            <TableCell className="num-cell">{formatMoney(sumPaid)}</TableCell>
+            <TableCell className="num-cell">{formatMoney(sumTotal - sumBilled)}</TableCell>
             <TableCell colSpan={edit ? 2 : 1} />
           </TableRow>
         </TableFooter>

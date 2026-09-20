@@ -45,7 +45,7 @@ export async function ContractsTable({ rows, supplier }: { rows: ContractRow[]; 
         ) : (
           rows.map((r) => (
             <TableRow key={r.id}>
-              <TableCell className="num">{r.numberInProject}</TableCell>
+              <TableCell className="num-cell">{r.numberInProject}</TableCell>
               <TableCell>
                 <Link href={`/contracts/${r.id}`} className="font-medium text-primary hover:underline">
                   {r.name}
@@ -58,18 +58,18 @@ export async function ContractsTable({ rows, supplier }: { rows: ContractRow[]; 
                 ))}
               </TableCell>
               <TableCell>{r.statusCode ? <Badge variant={r.statusCode === "active" ? "success" : r.statusCode === "cancelled" ? "destructive" : r.statusCode === "on_hold" ? "warning" : "secondary"}>{ts(r.statusCode)}</Badge> : "—"}</TableCell>
-              <TableCell className="num">{formatDate(r.signedDate)}</TableCell>
-              <TableCell className="num">{r.subContracts.length}</TableCell>
-              <TableCell className="num">{formatMoney(r.balances.totalAmount)}</TableCell>
+              <TableCell className="num-cell">{formatDate(r.signedDate)}</TableCell>
+              <TableCell className="num-cell">{r.subContracts.length}</TableCell>
+              <TableCell className="num-cell">{formatMoney(r.balances.totalAmount)}</TableCell>
               {supplier ? (
-                <TableCell className="num">{formatMoney(r.supplierCost)}</TableCell>
+                <TableCell className="num-cell">{formatMoney(r.supplierCost)}</TableCell>
               ) : (
                 <>
-                  <TableCell className="num">{formatMoney(r.balances.submitted)}</TableCell>
-                  <TableCell className="num">{formatMoney(r.balances.paid)}</TableCell>
-                  <TableCell className="num">{formatMoney(r.balances.openBalance)}</TableCell>
-                  <TableCell className="num">{formatMoney(r.balances.remaining)}</TableCell>
-                  <TableCell className="num">{formatPct(r.balances.progressPct)}</TableCell>
+                  <TableCell className="num-cell">{formatMoney(r.balances.submitted)}</TableCell>
+                  <TableCell className="num-cell">{formatMoney(r.balances.paid)}</TableCell>
+                  <TableCell className="num-cell">{formatMoney(r.balances.openBalance)}</TableCell>
+                  <TableCell className="num-cell">{formatMoney(r.balances.remaining)}</TableCell>
+                  <TableCell className="num-cell">{formatPct(r.balances.progressPct)}</TableCell>
                 </>
               )}
             </TableRow>
@@ -80,15 +80,15 @@ export async function ContractsTable({ rows, supplier }: { rows: ContractRow[]; 
         <TableFooter>
           <TableRow>
             <TableCell colSpan={5}>{tc("total")}</TableCell>
-            <TableCell className="num">{formatMoney(sum((r) => r.balances.totalAmount))}</TableCell>
+            <TableCell className="num-cell">{formatMoney(sum((r) => r.balances.totalAmount))}</TableCell>
             {supplier ? (
-              <TableCell className="num">{formatMoney(sum((r) => r.supplierCost))}</TableCell>
+              <TableCell className="num-cell">{formatMoney(sum((r) => r.supplierCost))}</TableCell>
             ) : (
               <>
-                <TableCell className="num">{formatMoney(sum((r) => r.balances.submitted))}</TableCell>
-                <TableCell className="num">{formatMoney(sum((r) => r.balances.paid))}</TableCell>
-                <TableCell className="num">{formatMoney(sum((r) => r.balances.openBalance))}</TableCell>
-                <TableCell className="num">{formatMoney(sum((r) => r.balances.remaining))}</TableCell>
+                <TableCell className="num-cell">{formatMoney(sum((r) => r.balances.submitted))}</TableCell>
+                <TableCell className="num-cell">{formatMoney(sum((r) => r.balances.paid))}</TableCell>
+                <TableCell className="num-cell">{formatMoney(sum((r) => r.balances.openBalance))}</TableCell>
+                <TableCell className="num-cell">{formatMoney(sum((r) => r.balances.remaining))}</TableCell>
                 <TableCell />
               </>
             )}

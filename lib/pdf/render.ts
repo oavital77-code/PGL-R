@@ -24,7 +24,7 @@ export async function htmlToPdf(html: string): Promise<Buffer> {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "load" });
     await page.evaluate(() => (document as unknown as { fonts: { ready: Promise<void> } }).fonts.ready);
-    const pdf = await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true, margin: { top: "14mm", bottom: "18mm", left: "12mm", right: "12mm" }, displayHeaderFooter: false });
+    const pdf = await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true, margin: { top: "10mm", bottom: "16mm", left: "10mm", right: "10mm" }, displayHeaderFooter: false });
     return Buffer.from(pdf);
   } finally {
     await browser.close();

@@ -54,8 +54,8 @@ export function ContactsPanel({ owner, rows, canEdit, showInvoiceFlag = true }: 
                   {c.firstName} {c.lastName} {c.isPrimary ? <Badge variant="secondary">{t("primary")}</Badge> : null}
                 </TableCell>
                 <TableCell>{c.roleTitle ?? "—"}</TableCell>
-                <TableCell className="num">{c.email ?? "—"}</TableCell>
-                <TableCell className="num">{c.phone ?? "—"}</TableCell>
+                <TableCell className="num-cell">{c.email ?? "—"}</TableCell>
+                <TableCell className="num-cell">{c.phone ?? "—"}</TableCell>
                 {showInvoiceFlag ? <TableCell>{c.receivesInvoices ? "✔" : ""}</TableCell> : null}
                 <TableCell className="text-end whitespace-nowrap">
                   {canEdit ? (

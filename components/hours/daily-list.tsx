@@ -43,9 +43,9 @@ export function DailyList({ date, entries, stdMinutes, isWorkDay, locked, canEdi
             entries.map((e) => (
               <TableRow key={e.id} className="cursor-pointer" onClick={() => onEdit(e)}>
                 <TableCell>{e.label}</TableCell>
-                <TableCell className="num">{e.startTime?.slice(0, 5) ?? "—"}</TableCell>
-                <TableCell className="num">{e.endTime?.slice(0, 5) ?? "—"}</TableCell>
-                <TableCell className="num">{formatHours(e.minutes)}</TableCell>
+                <TableCell className="num-cell">{e.startTime?.slice(0, 5) ?? "—"}</TableCell>
+                <TableCell className="num-cell">{e.endTime?.slice(0, 5) ?? "—"}</TableCell>
+                <TableCell className="num-cell">{formatHours(e.minutes)}</TableCell>
                 <TableCell>
                   {e.description}
                   {e.reportedByName ? <span className="ms-2 text-xs text-muted-foreground">({t("reported_by", { name: e.reportedByName })})</span> : null}

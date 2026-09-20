@@ -66,8 +66,8 @@ export function MonthlyCalendar({ from, to, entries, stdMinutes, workDays, emplo
             {pie.map((p) => (
               <TableRow key={p.name}>
                 <TableCell>{p.name}</TableCell>
-                <TableCell className="num">{p.hours.toFixed(2)}</TableCell>
-                <TableCell className="num">{total ? ((p.hours * 60 * 100) / total).toFixed(1) : "0"}%</TableCell>
+                <TableCell className="num-cell">{p.hours.toFixed(2)}</TableCell>
+                <TableCell className="num-cell">{total ? ((p.hours * 60 * 100) / total).toFixed(1) : "0"}%</TableCell>
               </TableRow>
             ))}
           </TableBody>

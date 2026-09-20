@@ -2,10 +2,12 @@ import Link from "next/link";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { can, requireCapability } from "@/lib/auth/authorize";
+import { can, requireUser } from "@/lib/auth/authorize";
+import { AuthError } from "@/lib/auth/errors";
+import { canManageTeam, canViewProject } from "@/lib/auth/project-access";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
-import { contractNotes, contractStatuses, contracts, departments, invoiceLines, invoices, projectCostEstimates, projects, stageNames, subContractAssignments, subContracts, timeEntries, users } from "@/lib/db/schema";
+import { contractNotes, contractStatuses, contracts, departments, grades, invoiceLines, invoices, projectCostEstimates, projects, stageNames, subContractAssignments, subContracts, timeEntries, users } from "@/lib/db/schema";
 import { contractBalancesReport } from "@/lib/reports/balances";
 import { contractFormLookups } from "@/lib/projects/lookups";
 import { formatDate, formatHours, formatMoney, formatMonth, formatPct } from "@/lib/i18n/format";
@@ -23,9 +25,11 @@ import { EstimatesPanel } from "@/components/sub-contracts/estimates-panel";
 import { SubContractDialog } from "@/components/sub-contracts/sub-contract-dialog";
 import { SubContractLockButton } from "@/components/sub-contracts/lock-button";
 import { Lock } from "lucide-react";
+import { InvoiceStatusBadge } from "@/components/invoices/status-badge";
+import { currentStation } from "@/lib/invoices/approval-chain";
 
 export default async function SubContractPage({ params }: { params: Promise<{ id: string }> }) {
-  const user = await requireCapability("contracts.view");
+  const user = await requireUser();
   const { id } = await params;
   const [row] = await db
     .select({ s: subContracts, c: contracts, p: projects, status: contractStatuses.code, statusName: contractStatuses.name, dept: departments.name })
@@ -37,13 +41,14 @@ export default async function SubContractPage({ params }: { params: Promise<{ id
     .where(and(eq(subContracts.id, id), isNull(subContracts.deletedAt)));
   if (!row) notFound();
   const { s, c, p } = row;
+  if (!canViewProject(user, p, "contracts.view")) throw new AuthError("FORBIDDEN");
   const isSupplier = c.direction === "expense";
   const [report, lookups, sn, assigned, allUsers, hours, lines, ests, notes, me, t, tc, tp, f] = await Promise.all([
     contractBalancesReport({ contractIds: [c.id], subContractIds: [id] }),
     contractFormLookups(),
     db.select({ id: stageNames.id, name: stageNames.name }).from(stageNames).where(eq(stageNames.isActive, true)).orderBy(stageNames.sortOrder),
     db.select({ userId: subContractAssignments.userId }).from(subContractAssignments).where(and(eq(subContractAssignments.subContractId, id), eq(subContractAssignments.isActive, true))),
-    db.select({ id: users.id, first: users.firstName, last: users.lastName, dept: departments.name }).from(users).leftJoin(departments, eq(departments.id, users.departmentId)).where(and(eq(users.isActive, true), isNull(users.deletedAt))).orderBy(users.lastName),
+    db.select({ id: users.id, first: users.firstName, last: users.lastName, dept: departments.name, grade: grades.name }).from(users).leftJoin(departments, eq(departments.id, users.departmentId)).leftJoin(grades, eq(grades.id, users.gradeId)).where(and(eq(users.isActive, true), isNull(users.deletedAt))).orderBy(users.lastName, users.firstName),
     db
       .select({ userId: timeEntries.userId, first: users.firstName, last: users.lastName, month: sql<string>`to_char(${timeEntries.workDate}, 'YYYY-MM')`, minutes: sql<number>`sum(${timeEntries.minutes})` })
       .from(timeEntries)
@@ -52,7 +57,7 @@ export default async function SubContractPage({ params }: { params: Promise<{ id
       .groupBy(timeEntries.userId, users.firstName, users.lastName, sql`to_char(${timeEntries.workDate}, 'YYYY-MM')`)
       .orderBy(sql`4 desc`),
     db
-      .select({ l: invoiceLines, number: invoices.invoiceNumber, status: invoices.status, date: invoices.invoiceDate, invoiceId: invoices.id })
+      .select({ l: invoiceLines, number: invoices.invoiceNumber, status: invoices.status, date: invoices.invoiceDate, invoiceId: invoices.id, approvalChain: invoices.approvalChain, approvalStep: invoices.approvalStep })
       .from(invoiceLines)
       .innerJoin(invoices, eq(invoices.id, invoiceLines.invoiceId))
       .where(and(eq(invoiceLines.subContractId, id), isNull(invoices.deletedAt)))
@@ -70,6 +75,15 @@ export default async function SubContractPage({ params }: { params: Promise<{ id
   const locked = s.isLocked || c.isLocked;
   const canEdit = can(user, "contracts.edit") && !locked;
   const hasMilestones = s.pricingMethod === "fixed_price" || s.pricingMethod === "pct_of_cost";
+  // one row per invoice, whatever number of lines of this sub-contract it carries
+  const invoiceRows = [...lines.reduce((acc, { l, number, status, date, invoiceId, approvalChain, approvalStep }) => {
+    const r = acc.get(invoiceId) ?? { invoiceId, number, status, date, station: currentStation({ status, approvalChain, approvalStep })?.name ?? null, items: [] as string[], amount: 0 };
+    if (Number(l.amountThis) !== 0) r.items.push(`${l.description ?? ""}${l.progressPctThis ? ` ${formatPct(l.progressPctThis, 0)}` : ""}`.trim());
+    r.amount += Number(l.amountThis);
+    acc.set(invoiceId, r);
+    return acc;
+  }, new Map<string, { invoiceId: string; number: string; status: string; date: string; station: string | null; items: string[]; amount: number }>()).values()];
+
   return (
     <>
       <PageHeader
@@ -169,7 +183,7 @@ export default async function SubContractPage({ params }: { params: Promise<{ id
           </TabsContent>
         ) : null}
         <TabsContent value="team">
-          <AssignmentsPanel subContractId={id} users={allUsers.map((u) => ({ id: u.id, name: `${u.first} ${u.last}`, department: u.dept }))} assigned={assigned.map((a) => a.userId)} canEdit={can(user, "assignments.manage")} />
+          <AssignmentsPanel subContractId={id} users={allUsers.map((u) => ({ id: u.id, name: `${u.first} ${u.last}`, department: u.dept, grade: u.grade }))} assigned={assigned.map((a) => a.userId)} canEdit={canManageTeam(user, p)} />
         </TabsContent>
         <TabsContent value="hours">
           <div className="space-y-2">
@@ -196,8 +210,8 @@ export default async function SubContractPage({ params }: { params: Promise<{ id
                   hours.map((h, i) => (
                     <TableRow key={i}>
                       <TableCell>{h.first} {h.last}</TableCell>
-                      <TableCell className="num">{h.month}</TableCell>
-                      <TableCell className="num">{formatHours(Number(h.minutes))}</TableCell>
+                      <TableCell className="num-cell">{h.month}</TableCell>
+                      <TableCell className="num-cell">{formatHours(Number(h.minutes))}</TableCell>
                     </TableRow>
                   ))
                 )}
@@ -211,30 +225,26 @@ export default async function SubContractPage({ params }: { params: Promise<{ id
               <TableRow>
                 <TableHead>{t("invoice_number")}</TableHead>
                 <TableHead>{tc("date")}</TableHead>
-                <TableHead>{tc("description")}</TableHead>
-                <TableHead>{t("progress_this")}</TableHead>
-                <TableHead>{t("amount_this")}</TableHead>
-                <TableHead>{t("cumulative")}</TableHead>
                 <TableHead>{tc("status")}</TableHead>
+                <TableHead>{t("invoice_lines_here")}</TableHead>
+                <TableHead>{t("amount_this")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {lines.length === 0 ? (
+              {invoiceRows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">{tc("none")}</TableCell>
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">{tc("none")}</TableCell>
                 </TableRow>
               ) : (
-                lines.map(({ l, number, status, date, invoiceId }) => (
-                  <TableRow key={l.id}>
-                    <TableCell className="num">
-                      <Link href={`/invoices/${invoiceId}`} className="text-primary hover:underline">{number}</Link>
+                invoiceRows.map((r) => (
+                  <TableRow key={r.invoiceId}>
+                    <TableCell className="num-cell">
+                      <Link href={`/invoices/${r.invoiceId}`} className="text-primary hover:underline">{r.number}</Link>
                     </TableCell>
-                    <TableCell className="num">{formatDate(date)}</TableCell>
-                    <TableCell>{l.description ?? "—"}</TableCell>
-                    <TableCell className="num">{l.progressPctThis ? formatPct(l.progressPctThis, 3) : "—"}</TableCell>
-                    <TableCell className="num">{formatMoney(l.amountThis)}</TableCell>
-                    <TableCell className="num">{l.cumulativeAmount ? formatMoney(l.cumulativeAmount) : "—"}</TableCell>
-                    <TableCell><Badge variant="secondary">{status}</Badge></TableCell>
+                    <TableCell className="num-cell">{formatDate(r.date)}</TableCell>
+                    <TableCell><InvoiceStatusBadge status={r.status} station={r.station} /></TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{r.items.join(" · ") || "—"}</TableCell>
+                    <TableCell className="num-cell font-medium">{formatMoney(r.amount)}</TableCell>
                   </TableRow>
                 ))
               )}

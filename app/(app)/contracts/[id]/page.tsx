@@ -2,7 +2,9 @@ import Link from "next/link";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { can, requireCapability } from "@/lib/auth/authorize";
+import { can, requireUser } from "@/lib/auth/authorize";
+import { AuthError } from "@/lib/auth/errors";
+import { canViewProject } from "@/lib/auth/project-access";
 import { db } from "@/lib/db";
 import { clients, contractNotes, contractRoles, contractStatuses, contractTypes, contracts, contacts, departments, invoices, projects, stageNames, suppliers, users } from "@/lib/db/schema";
 import { contractBalancesReport } from "@/lib/reports/balances";
@@ -26,7 +28,7 @@ import { Lock } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth/current-user";
 
 export default async function ContractPage({ params }: { params: Promise<{ id: string }> }) {
-  const user = await requireCapability("contracts.view");
+  const user = await requireUser();
   const { id } = await params;
   const [row] = await db
     .select({ c: contracts, project: projects, client: clients.name, status: contractStatuses.code, statusName: contractStatuses.name, type: contractTypes.name, supplier: suppliers.name, creator: sql<string | null>`${users.firstName} || ' ' || ${users.lastName}` })
@@ -40,6 +42,7 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
     .where(and(eq(contracts.id, id), isNull(contracts.deletedAt)));
   if (!row) notFound();
   const c = row.c;
+  if (!canViewProject(user, row.project, "contracts.view")) throw new AuthError("FORBIDDEN");
   const [report, lookups, roles, notes, invs, payingClient, dept, supplierList, allUsers, clientContacts, roleTitles, stageNamesList, t, tc, tp, f] = await Promise.all([
     contractBalancesReport({ contractIds: [id] }),
     contractFormLookups(),
@@ -198,20 +201,20 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
                 <TableBody>
                   {subs.map((s) => (
                     <TableRow key={s.id}>
-                      <TableCell className="num">{s.numberInContract}</TableCell>
+                      <TableCell className="num-cell">{s.numberInContract}</TableCell>
                       <TableCell>
                         <Link href={`/sub-contracts/${s.id}`} className="font-medium text-primary hover:underline">
                           {s.name}
                         </Link>
                       </TableCell>
                       <TableCell>{tp(s.pricingMethod)}</TableCell>
-                      <TableCell className="num">
+                      <TableCell className="num-cell">
                         {formatMoney(s.balances.totalAmount)} {s.isOpen ? <Badge variant="muted">{tp("open")}</Badge> : null}
                       </TableCell>
-                      <TableCell className="num">{formatMoney(s.balances.submitted)}</TableCell>
-                      <TableCell className="num">{formatMoney(s.balances.remaining)}</TableCell>
-                      <TableCell className="num">{formatMoney(s.balances.paid)}</TableCell>
-                      <TableCell className="num">{formatMoney(s.balances.openBalance)}</TableCell>
+                      <TableCell className="num-cell">{formatMoney(s.balances.submitted)}</TableCell>
+                      <TableCell className="num-cell">{formatMoney(s.balances.remaining)}</TableCell>
+                      <TableCell className="num-cell">{formatMoney(s.balances.paid)}</TableCell>
+                      <TableCell className="num-cell">{formatMoney(s.balances.openBalance)}</TableCell>
                       {!isSupplier ? <TableCell>{s.participatesInHours ? "✔" : "—"}</TableCell> : null}
                       <TableCell>{s.isLocked ? <Lock className="h-4 w-4 text-muted-foreground" /> : ""}</TableCell>
                       <TableCell className="text-end">{canEdit ? <SubContractRowActions contractId={id} subContractId={s.id} lookups={lookups} isSupplier={isSupplier} isLocked={s.isLocked} /> : null}</TableCell>
@@ -221,11 +224,11 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
                 <TableFooter>
                   <TableRow>
                     <TableCell colSpan={3}>{tc("total")}</TableCell>
-                    <TableCell className="num">{formatMoney(cr.balances.totalAmount)}</TableCell>
-                    <TableCell className="num">{formatMoney(cr.balances.submitted)}</TableCell>
-                    <TableCell className="num">{formatMoney(cr.balances.remaining)}</TableCell>
-                    <TableCell className="num">{formatMoney(cr.balances.paid)}</TableCell>
-                    <TableCell className="num">{formatMoney(cr.balances.openBalance)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(cr.balances.totalAmount)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(cr.balances.submitted)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(cr.balances.remaining)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(cr.balances.paid)}</TableCell>
+                    <TableCell className="num-cell">{formatMoney(cr.balances.openBalance)}</TableCell>
                     <TableCell colSpan={3} />
                   </TableRow>
                 </TableFooter>
@@ -281,15 +284,15 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
                 ) : (
                   invs.map((i) => (
                     <TableRow key={i.id}>
-                      <TableCell className="num">
+                      <TableCell className="num-cell">
                         <Link href={`/invoices/${i.id}`} className="text-primary hover:underline">
                           {i.invoiceNumber}
                         </Link>
                       </TableCell>
-                      <TableCell className="num">{i.partialNumber}</TableCell>
-                      <TableCell className="num">{formatDate(i.invoiceDate)}</TableCell>
-                      <TableCell className="num">{formatMoney(i.beforeVat)}</TableCell>
-                      <TableCell className="num">{formatMoney(i.total)}</TableCell>
+                      <TableCell className="num-cell">{i.partialNumber}</TableCell>
+                      <TableCell className="num-cell">{formatDate(i.invoiceDate)}</TableCell>
+                      <TableCell className="num-cell">{formatMoney(i.beforeVat)}</TableCell>
+                      <TableCell className="num-cell">{formatMoney(i.total)}</TableCell>
                       <TableCell>
                         <Badge variant="secondary">{i.status}</Badge>
                       </TableCell>

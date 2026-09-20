@@ -52,9 +52,14 @@ async function swapPool(): Promise<Sql> {
   return old.sql;
 }
 
+// Both teardowns are bounded: a connection whose reply never comes would otherwise keep the
+// instance alive until the platform's 300 s limit (seen as "Task timed out" on server actions).
+// Fifteen seconds lets any healthy statement of a concurrent request finish first.
+const POOL_TEARDOWN_S = 15;
+
 const releaseAfterResponse = makeReleaser(after, async () => {
   const old = await swapPool();
-  await old.end().catch(() => undefined);
+  await old.end({ timeout: POOL_TEARDOWN_S }).catch(() => undefined);
 });
 
 const guardedUnsafe = guardUnsafe(
@@ -65,7 +70,7 @@ const guardedUnsafe = guardUnsafe(
   async (reason) => {
     const old = await swapPool();
     console.warn(`[db] pool reset (${reason})`);
-    await old.end({ timeout: 1 }).catch(() => undefined);
+    await old.end({ timeout: POOL_TEARDOWN_S }).catch(() => undefined);
   },
   QUERY_TIMEOUT_MS,
 );

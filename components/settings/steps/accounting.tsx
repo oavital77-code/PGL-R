@@ -46,7 +46,7 @@ export async function AccountingStep() {
             <TableBody>
               {ACCOUNTING_EXPORT_FIELDS.map((f) => (
                 <TableRow key={f}>
-                  <TableCell className="num text-xs">
+                  <TableCell className="num-cell text-xs">
                     <input type="hidden" name="mapping_key" value={f} />
                     {f}
                   </TableCell>

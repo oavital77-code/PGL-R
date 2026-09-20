@@ -75,10 +75,10 @@ export default async function SuppliersPage({ searchParams }: { searchParams: Pr
                   </Link>
                 </TableCell>
                 <TableCell>{r.s.field ?? "—"}</TableCell>
-                <TableCell className="num">{formatMoney(r.budget)}</TableCell>
-                <TableCell className="num">{formatMoney(r.approved)}</TableCell>
-                <TableCell className="num">{formatMoney(r.paid)}</TableCell>
-                <TableCell className="num">{formatMoney(Number(r.budget) - Number(r.approved))}</TableCell>
+                <TableCell className="num-cell">{formatMoney(r.budget)}</TableCell>
+                <TableCell className="num-cell">{formatMoney(r.approved)}</TableCell>
+                <TableCell className="num-cell">{formatMoney(r.paid)}</TableCell>
+                <TableCell className="num-cell">{formatMoney(Number(r.budget) - Number(r.approved))}</TableCell>
                 <TableCell>{r.s.isActive ? <Badge variant="success">{tc("active")}</Badge> : <Badge variant="muted">{tc("inactive")}</Badge>}</TableCell>
               </TableRow>
             ))
